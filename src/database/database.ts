@@ -26,7 +26,7 @@ export class DatabaseConnection {
         DatabaseConnection.mode = mode;
         DatabaseConnection.version = version;
         DatabaseConnection.readonly = readonly;
-        DatabaseConnection.log = readonly
+        DatabaseConnection.log = log
     }
   
     static get db(): Promise<SQLiteDBConnection> {
