@@ -1,10 +1,7 @@
-import { registerPlugin } from '@capacitor/core';
+import { QueryBuild } from './query/query-build';
 
-import type { ExamplePlugin } from './definitions';
 
-const Example = registerPlugin<ExamplePlugin>('Example', {
-  web: () => import('./web').then(m => new m.ExampleWeb()),
-});
-
+export * from './decoratiors/decoratiors.orm';
 export * from './definitions';
-export { Example };
+export { QueryBuild };
+

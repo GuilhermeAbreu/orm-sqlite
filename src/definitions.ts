@@ -1,3 +1,1 @@
-export interface ExamplePlugin {
-  echo(options: { value: string }): Promise<{ value: string }>;
-}
+export * from './query/query-build.definicions';

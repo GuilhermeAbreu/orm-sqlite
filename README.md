@@ -13,25 +13,315 @@ npx cap sync
 
 <docgen-index>
 
-* [`echo(...)`](#echo)
+* [`groupBy(...)`](#groupby)
+* [`where(...)`](#where)
+* [`whereJoin(...)`](#wherejoin)
+* [`limit(...)`](#limit)
+* [`offset(...)`](#offset)
+* [`orderBy(...)`](#orderby)
+* [`join(...)`](#join)
+* [`leftJoin(...)`](#leftjoin)
+* [`getQuery()`](#getquery)
+* [`insert(...)`](#insert)
+* [`update(...)`](#update)
+* [`delete()`](#delete)
+* [`createTable(...)`](#createtable)
+* [`addColumn(...)`](#addcolumn)
+* [`dropColumn(...)`](#dropcolumn)
+* [`alterColumn(...)`](#altercolumn)
+* [Interfaces](#interfaces)
+* [Type Aliases](#type-aliases)
 
 </docgen-index>
 
 <docgen-api>
 <!--Update the source file JSDoc comments and rerun docgen to update the docs below-->
 
-### echo(...)
+### groupBy(...)
 
 ```typescript
-echo(options: { value: string; }) => Promise<{ value: string; }>
+groupBy<K extends keyof T>(...columns: K[]) => this
 ```
 
-| Param         | Type                            |
-| ------------- | ------------------------------- |
-| **`options`** | <code>{ value: string; }</code> |
+| Param         | Type             |
+| ------------- | ---------------- |
+| **`columns`** | <code>K[]</code> |
 
-**Returns:** <code>Promise&lt;{ value: string; }&gt;</code>
+**Returns:** <code>this</code>
 
 --------------------
+
+
+### where(...)
+
+```typescript
+where<K extends keyof T>(column: K, value: T[K], operator?: "=" | "<>" | "<" | ">" | "<=" | ">=" | undefined) => this
+```
+
+| Param          | Type                                                                     |
+| -------------- | ------------------------------------------------------------------------ |
+| **`column`**   | <code>K</code>                                                           |
+| **`value`**    | <code>T[K]</code>                                                        |
+| **`operator`** | <code>'=' \| '&lt;&gt;' \| '&lt;' \| '&gt;' \| '&lt;=' \| '&gt;='</code> |
+
+**Returns:** <code>this</code>
+
+--------------------
+
+
+### whereJoin(...)
+
+```typescript
+whereJoin<K extends keyof T, U>(tableName: IModelClass<U>, column: K, value: T[K], operator?: "=" | "<>" | "<" | ">" | "<=" | ">=" | undefined) => this
+```
+
+| Param           | Type                                                                     |
+| --------------- | ------------------------------------------------------------------------ |
+| **`tableName`** | <code><a href="#imodelclass">IModelClass</a>&lt;U&gt;</code>             |
+| **`column`**    | <code>K</code>                                                           |
+| **`value`**     | <code>T[K]</code>                                                        |
+| **`operator`**  | <code>'=' \| '&lt;&gt;' \| '&lt;' \| '&gt;' \| '&lt;=' \| '&gt;='</code> |
+
+**Returns:** <code>this</code>
+
+--------------------
+
+
+### limit(...)
+
+```typescript
+limit(limit: number) => this
+```
+
+| Param       | Type                |
+| ----------- | ------------------- |
+| **`limit`** | <code>number</code> |
+
+**Returns:** <code>this</code>
+
+--------------------
+
+
+### offset(...)
+
+```typescript
+offset(offset: number) => this
+```
+
+| Param        | Type                |
+| ------------ | ------------------- |
+| **`offset`** | <code>number</code> |
+
+**Returns:** <code>this</code>
+
+--------------------
+
+
+### orderBy(...)
+
+```typescript
+orderBy<K extends keyof T>(column: K, order?: IQueryOptions['order']) => this
+```
+
+| Param        | Type                         |
+| ------------ | ---------------------------- |
+| **`column`** | <code>K</code>               |
+| **`order`**  | <code>'ASC' \| 'DESC'</code> |
+
+**Returns:** <code>this</code>
+
+--------------------
+
+
+### join(...)
+
+```typescript
+join<K extends keyof T, U>(tableName: IModelClass<U>, foreignKey: K, primaryKey: keyof U, as: K) => this
+```
+
+| Param            | Type                                                         |
+| ---------------- | ------------------------------------------------------------ |
+| **`tableName`**  | <code><a href="#imodelclass">IModelClass</a>&lt;U&gt;</code> |
+| **`foreignKey`** | <code>K</code>                                               |
+| **`primaryKey`** | <code>keyof U</code>                                         |
+| **`as`**         | <code>K</code>                                               |
+
+**Returns:** <code>this</code>
+
+--------------------
+
+
+### leftJoin(...)
+
+```typescript
+leftJoin<K extends keyof T, U>(tableName: IModelClass<U>, foreignKey: K, primaryKey: keyof U, as: K) => this
+```
+
+| Param            | Type                                                         |
+| ---------------- | ------------------------------------------------------------ |
+| **`tableName`**  | <code><a href="#imodelclass">IModelClass</a>&lt;U&gt;</code> |
+| **`foreignKey`** | <code>K</code>                                               |
+| **`primaryKey`** | <code>keyof U</code>                                         |
+| **`as`**         | <code>K</code>                                               |
+
+**Returns:** <code>this</code>
+
+--------------------
+
+
+### getQuery()
+
+```typescript
+getQuery() => string
+```
+
+**Returns:** <code>string</code>
+
+--------------------
+
+
+### insert(...)
+
+```typescript
+insert(values: Partial<T> | Partial<T>[]) => string
+```
+
+| Param        | Type                                                                                              |
+| ------------ | ------------------------------------------------------------------------------------------------- |
+| **`values`** | <code><a href="#partial">Partial</a>&lt;T&gt; \| <a href="#partial">Partial</a>&lt;T&gt;[]</code> |
+
+**Returns:** <code>string</code>
+
+--------------------
+
+
+### update(...)
+
+```typescript
+update(values: Partial<T>) => string
+```
+
+| Param        | Type                                                 |
+| ------------ | ---------------------------------------------------- |
+| **`values`** | <code><a href="#partial">Partial</a>&lt;T&gt;</code> |
+
+**Returns:** <code>string</code>
+
+--------------------
+
+
+### delete()
+
+```typescript
+delete() => string
+```
+
+**Returns:** <code>string</code>
+
+--------------------
+
+
+### createTable(...)
+
+```typescript
+createTable(columns: IColumnType<T>[]) => string
+```
+
+| Param         | Type                                                           |
+| ------------- | -------------------------------------------------------------- |
+| **`columns`** | <code><a href="#icolumntype">IColumnType</a>&lt;T&gt;[]</code> |
+
+**Returns:** <code>string</code>
+
+--------------------
+
+
+### addColumn(...)
+
+```typescript
+addColumn(column: IColumnType<T>) => string
+```
+
+| Param        | Type                                                         |
+| ------------ | ------------------------------------------------------------ |
+| **`column`** | <code><a href="#icolumntype">IColumnType</a>&lt;T&gt;</code> |
+
+**Returns:** <code>string</code>
+
+--------------------
+
+
+### dropColumn(...)
+
+```typescript
+dropColumn(columnName: keyof T) => string
+```
+
+| Param            | Type                 |
+| ---------------- | -------------------- |
+| **`columnName`** | <code>keyof T</code> |
+
+**Returns:** <code>string</code>
+
+--------------------
+
+
+### alterColumn(...)
+
+```typescript
+alterColumn(column: IColumnType<T>) => string
+```
+
+| Param        | Type                                                         |
+| ------------ | ------------------------------------------------------------ |
+| **`column`** | <code><a href="#icolumntype">IColumnType</a>&lt;T&gt;</code> |
+
+**Returns:** <code>string</code>
+
+--------------------
+
+
+### Interfaces
+
+
+#### IQueryFilter
+
+| Prop           | Type                                                                     |
+| -------------- | ------------------------------------------------------------------------ |
+| **`column`**   | <code>keyof T</code>                                                     |
+| **`value`**    | <code>any</code>                                                         |
+| **`operator`** | <code>'=' \| '&lt;&gt;' \| '&lt;' \| '&gt;' \| '&lt;=' \| '&gt;='</code> |
+
+
+#### IModelClass
+
+| Prop             | Type                |
+| ---------------- | ------------------- |
+| **`entityName`** | <code>string</code> |
+
+
+#### IQueryOptions
+
+| Prop          | Type                         |
+| ------------- | ---------------------------- |
+| **`limit`**   | <code>number</code>          |
+| **`offset`**  | <code>number</code>          |
+| **`orderBy`** | <code>string</code>          |
+| **`order`**   | <code>'ASC' \| 'DESC'</code> |
+
+
+### Type Aliases
+
+
+#### Partial
+
+Make all properties in T optional
+
+<code>{ [P in keyof T]?: T[P]; }</code>
+
+
+#### IColumnType
+
+<code>{ [K in keyof T]: { name: K; type: 'INTEGER' | 'TEXT' | 'BOOLEAN' | 'DATE'; primaryKey?: boolean; unique?: boolean; notNull?: boolean; defaultValue?: any; autoIncremente?: boolean; }; }[keyof T]</code>
 
 </docgen-api>

@@ -1,6 +1,11 @@
-import { Example } from '@capacitor&#x2F;orm-sqlite';
 
-window.testEcho = () => {
-    const inputValue = document.getElementById("echoInput").value;
-    Example.echo({ value: inputValue })
+
+
+
+window.testEcho = async () => {
+  const inputValue = (document.getElementById("echoInput")).value;
+  
+
+  // Continue com o uso do queryBuild conforme necessário
 }
+
