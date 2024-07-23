@@ -2,7 +2,7 @@ import { CapacitorSQLite, SQLiteConnection, SQLiteDBConnection } from '@capacito
 
 export class DatabaseConnection {
 
-    private static sqlite: SQLiteConnection;
+    protected static sqlite: SQLiteConnection;
     private static _DB: SQLiteDBConnection;
     public static database: string;
     public static encrypted: boolean;
