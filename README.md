@@ -5,7 +5,7 @@ Gerenciado de sql e banco para sqlite no capacitor
 ## Install
 
 ```bash
-npm install @capacitor/orm-sqlite
+npm install @guilhermeabreu/capacitor-orm-sqlite"
 npx cap sync
 ```
 
@@ -317,7 +317,9 @@ alterColumn(column: IColumnTypeOrmSQlite<T>) => string
 
 Make all properties in T optional
 
-<code>{ [P in keyof T]?: T[P]; }</code>
+<code>{
+ [P in keyof T]?: T[P];
+ }</code>
 
 
 #### IColumnTypeOrmSQlite
