@@ -1,13 +1,6 @@
 import type { SQLiteDBConnection } from '@capacitor-community/sqlite';
 
-export interface IDatabaseConnectionOrmSQLite {
-    database: string;
-    encrypted: boolean;
-    mode: string;
-    version: number;
-    readonly: boolean;
-    log: boolean;
-  
+export interface IDatabaseConnectionOrmSQLite {  
     isOpen(): Promise<boolean>;
     createOrReconnectConnection(forceCreate: boolean): Promise<SQLiteDBConnection>;
     closeDB(): Promise<void>;

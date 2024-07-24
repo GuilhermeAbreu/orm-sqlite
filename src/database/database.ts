@@ -4,13 +4,16 @@ import { IDatabaseConnectionOrmSQLite, IMigrationDatabaseOrmSQLite } from './dat
 export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite {
 
   protected static sqlite: SQLiteConnection;
-  private static _DB: SQLiteDBConnection;
-  public static database: string;
-  public static encrypted: boolean;
-  public static mode: string;
-  public static version: number;
-  public static readonly: boolean;
-  public static log: boolean;
+  private static _DB: SQLiteDBConnection | undefined;
+
+  private static config = {
+    database: '',
+    encrypted: false,
+    mode: '',
+    version: 1,
+    readonly: false,
+    log: false,
+  };
 
   constructor(
     SQLiteConnection: SQLiteConnection,
@@ -22,38 +25,38 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
     log: boolean
   ) {
     DatabaseConnectionOrmSQlite.sqlite = SQLiteConnection;
-    DatabaseConnectionOrmSQlite.database = database;
-    DatabaseConnectionOrmSQlite.encrypted = encrypted;
-    DatabaseConnectionOrmSQlite.mode = mode;
-    DatabaseConnectionOrmSQlite.version = version;
-    DatabaseConnectionOrmSQlite.readonly = readonly;
-    DatabaseConnectionOrmSQlite.log = log
+    DatabaseConnectionOrmSQlite.config.database = database;
+    DatabaseConnectionOrmSQlite.config.encrypted = encrypted;
+    DatabaseConnectionOrmSQlite.config.mode = mode;
+    DatabaseConnectionOrmSQlite.config.version = version;
+    DatabaseConnectionOrmSQlite.config.readonly = readonly;
+    DatabaseConnectionOrmSQlite.config.log = log;
   }
 
-  get database(): string {
-    throw new Error('This method is not an instance method, use the static method');
-
+  static get database(): string {
+    return this.config.database;
   }
-  get encrypted(): boolean {
-    throw new Error('This method is not an instance method, use the static method');
-
+  static get encrypted(): boolean {
+    return this.config.encrypted;
   }
-  get mode(): string {
-    throw new Error('This method is not an instance method, use the static method');
-
+  static get mode(): string {
+    return this.config.mode;
   }
-  get version(): number {
-    throw new Error('This method is not an instance method, use the static method');
-
+  static get version(): number {
+    return this.config.version;
   }
-  get readonly(): boolean {
-    throw new Error('This method is not an instance method, use the static method');
-
+  static get readonly(): boolean {
+    return this.config.readonly;
   }
-  get log(): boolean {
-    throw new Error('This method is not an instance method, use the static method');
-
+  static get log(): boolean {
+    return this.config.log;
   }
+
+  public static setConfig(config: Partial<typeof DatabaseConnectionOrmSQlite.config>) {
+    DatabaseConnectionOrmSQlite.config = { ...DatabaseConnectionOrmSQlite.config, ...config };
+    DatabaseConnectionOrmSQlite._DB = undefined;  // Reset DB connection to force reinitialization with new config
+  }
+
   isOpen(): Promise<boolean> {
     throw new Error('This method is not an instance method, use the static method');
   }
@@ -98,39 +101,70 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
   }
 
   static get db(): Promise<SQLiteDBConnection> {
-    return this.initializeDB();
+    return new Promise((res, rej) => {
+      try {
+        res(this.initializeDB())
+      } catch (error) {
+        rej(error);
+      }
+    });
   }
 
   public static async isOpen(): Promise<boolean> {
+    if (!DatabaseConnectionOrmSQlite._DB) return false;
     return (await DatabaseConnectionOrmSQlite._DB.isDBOpen()).result ?? false;
   }
 
-  public static async createOrReconnectConnection(forceCreate: boolean): Promise<SQLiteDBConnection> {
+  public static async createOrReconnectConnection(): Promise<SQLiteDBConnection> {
+    const dbName = this.config.database;
     try {
-      const isConsistent = forceCreate || !(await this.sqlite.checkConnectionsConsistency())?.result;
-      const dbName = this.database;
-
+      // Check connections consistency
+      const isConsistent = (await this.sqlite.checkConnectionsConsistency())?.result;
       if (!isConsistent) {
-        console.debug(`Reconnecting to database ${dbName}`);
-        return await this.sqlite.retrieveConnection(dbName, this.readonly);
+        console.debug(`Inconsistent connections detected. Creating new connection to database ${dbName}`);
+        return await this.sqlite.createConnection(
+          dbName,
+          this.config.encrypted,
+          this.config.mode,
+          this.config.version,
+          this.config.readonly
+        );
       }
-
-      console.debug(this.name, `Creating new connection to database ${dbName}`);
-      return await this.sqlite.createConnection(
-        dbName,
-        this.encrypted,
-        this.mode,
-        this.version,
-        this.readonly
-      );
+  
+      // Try to retrieve existing connection
+      let connection: SQLiteDBConnection | null = null;
+      try {
+        connection = await this.sqlite.retrieveConnection(dbName, this.config.readonly);
+        console.debug(`Reconnected to existing database ${dbName}`);
+      } catch (retrieveError) {
+        console.debug(`No existing connection found for database ${dbName}. Creating new connection.`);
+      }
+  
+      // If no existing connection, create a new one
+      if (!connection) {
+        connection = await this.sqlite.createConnection(
+          dbName,
+          this.config.encrypted,
+          this.config.mode,
+          this.config.version,
+          this.config.readonly
+        );
+        console.debug(`Created new connection to database ${dbName}`);
+      }
+  
+      return connection;
     } catch (error) {
-      console.error(error);
+      console.error(`Error creating or reconnecting to database ${dbName}:`, error);
       throw error;
     }
   }
+  
 
   public static async closeDB(): Promise<void> {
-    await (await this.db).close();
+    if (DatabaseConnectionOrmSQlite._DB) {
+      await DatabaseConnectionOrmSQlite._DB.close();
+      DatabaseConnectionOrmSQlite._DB = undefined;
+    }
   }
 
   public static async beginTransaction(): Promise<void> {
@@ -144,16 +178,18 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
   }
 
   public static async commitTransaction(): Promise<void> {
-    await (await this.db).commitTransaction();
+    const db = await this.db;
+    await db.commitTransaction();
   }
 
   public static async rollbackTransaction(): Promise<void> {
-    await (await this.db).rollbackTransaction();
+    const db = await this.db;
+    await db.rollbackTransaction();
   }
 
   public static async execute(sql: string): Promise<boolean> {
-    if (this.log) {
-      console.debug(this.database, sql);
+    if (this.config.log) {
+      console.debug(this.config.database, sql);
     }
     const db = await this.db;
     const result = await db.run(sql, undefined, false);
@@ -161,8 +197,8 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
   }
 
   public static async query<T = any>(sql: string): Promise<T[]> {
-    if (this.log) {
-      console.debug(this.database, sql);
+    if (this.config.log) {
+      console.debug(this.config.database, sql);
     }
     const db = await this.db;
     const result: any = await db.query(sql);
@@ -183,19 +219,20 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
       `);
   }
 
-  public static async recreateDatabase(migration: any[]): Promise<void> {
-    await CapacitorSQLite.deleteDatabase({ database: this.database });
+  public static async recreateDatabase(migration: IMigrationDatabaseOrmSQLite[]): Promise<void> {
+    await CapacitorSQLite.deleteDatabase({ database: this.config.database });
+    this.setConfig(this.config);
     await this.runMigrationsIfNeeded(migration);
   }
 
-  public static async runMigrationsIfNeeded(migrations: any[]): Promise<void> {
-    console.debug(this.database, 'Checking if migrations are needed.');
+  public static async runMigrationsIfNeeded(migrations: IMigrationDatabaseOrmSQLite[]): Promise<void> {
+    console.debug(this.config.database, 'Checking if migrations are needed.');
     await this.createDBVersionTableIfNotExists();
 
     const currentVersion = await this.getCurrentDBVersion();
 
     if (currentVersion === undefined) {
-      console.debug(this.database, 'Initial migration required.');
+      console.debug(this.config.database, 'Initial migration required.');
       await this.runInitialMigrations(migrations);
     } else {
       await this.migrateIfNeeded(migrations, currentVersion);
@@ -205,15 +242,11 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
   }
 
   private static async initializeDB(): Promise<SQLiteDBConnection> {
-    try {
-      const result = await this.sqlite.checkConnectionsConsistency();
-      console.debug('Connection Consistency:', result);
-    } catch (error) {
-      console.error('Error:', error);
-    }
-    DatabaseConnectionOrmSQlite._DB = await this.createOrReconnectConnection(false);
-    if (!(await DatabaseConnectionOrmSQlite._DB.isDBOpen()).result) {
-      await DatabaseConnectionOrmSQlite._DB.open();
+    if (!DatabaseConnectionOrmSQlite._DB) {
+      DatabaseConnectionOrmSQlite._DB = await this.createOrReconnectConnection();
+      if (!(await DatabaseConnectionOrmSQlite._DB.isDBOpen()).result) {
+        await DatabaseConnectionOrmSQlite._DB.open();
+      }
     }
     return DatabaseConnectionOrmSQlite._DB;
   }
@@ -239,23 +272,21 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
   private static async migrateIfNeeded(migrations: IMigrationDatabaseOrmSQLite[], currentVersion: number): Promise<void> {
     const expectedVersion = migrations[migrations.length - 1].version;
     if (currentVersion < expectedVersion) {
-      console.debug(this.database, `Migrating database: current version ${currentVersion}, expected version ${expectedVersion}`);
+      console.debug(this.config.database, `Migrating database: current version ${currentVersion}, expected version ${expectedVersion}`);
       for (let version = currentVersion + 1; version <= expectedVersion; version++) {
         await this.migrateToVersion(migrations, version);
       }
     } else {
-      console.debug(this.database, 'No migration needed.');
+      console.debug(this.config.database, 'No migration needed.');
     }
   }
 
   private static async migrateToVersion(migrations: IMigrationDatabaseOrmSQLite[], version: number): Promise<void> {
     const migration = migrations.find(m => m.version === version);
-    if (migration) {
-      for (const sql of migration.sql) {
-        await this.execute(sql);
-      }
-    } else {
-      console.warn(`Migration to version ${version} not found.`);
+    if (!migration) throw new Error(`Migration for version ${version} not found`);
+
+    for (const sql of migration.sql) {
+      await this.execute(sql);
     }
   }
 
