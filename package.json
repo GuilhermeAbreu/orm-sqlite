@@ -16,7 +16,7 @@
     "CapacitorOrmSqlite.podspec"
   ],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/GuilhermeAbreu/orm-sqlite-mobile.git"
