@@ -1,327 +1,175 @@
-# @capacitor/orm-sqlite
+markdown
 
-Gerenciado de sql e banco para sqlite no capacitor
+# ORM SQLite para Capacitor
 
-## Install
+Este projeto é uma biblioteca ORM SQLite para uso com Capacitor, facilitando a integração e manipulação de bancos de dados SQLite em aplicativos móveis.
+
+https://www.npmjs.com/package/@capacitor-community/sqlite
+
+## Instalação
+
+Para instalar o pacote `@guilhermeabreudev/capacitor-orm-sqlite`, execute o seguinte comando:
 
 ```bash
-npm install @guilhermeabreu/capacitor-orm-sqlite"
-npx cap sync
+npm install @guilhermeabreudev/capacitor-orm-sqlite
+npx cap sync && npx cap copy
 ```
+Configuração
+1. Adicionar o Plugin ao Projeto
+Adicione o plugin ao seu projeto Capacitor. Certifique-se de que o plugin está registrado corretamente.
 
-## API
+Configurações de SQLite
+https://github.com/capacitor-community/sqlite/blob/master/README.md
 
-<docgen-index>
+Criação da conexão apenas uma única vez no arquivo inicial do seu projeto.
 
-* [`groupBy(...)`](#groupby)
-* [`where(...)`](#where)
-* [`whereJoin(...)`](#wherejoin)
-* [`limit(...)`](#limit)
-* [`offset(...)`](#offset)
-* [`orderBy(...)`](#orderby)
-* [`join(...)`](#join)
-* [`leftJoin(...)`](#leftjoin)
-* [`getQuery()`](#getquery)
-* [`insert(...)`](#insert)
-* [`update(...)`](#update)
-* [`delete()`](#delete)
-* [`createTable(...)`](#createtable)
-* [`addColumn(...)`](#addcolumn)
-* [`dropColumn(...)`](#dropcolumn)
-* [`alterColumn(...)`](#altercolumn)
-* [Interfaces](#interfaces)
-* [Type Aliases](#type-aliases)
+Angular: app-component.ts
+```typescript
+new DatabaseConnectionOrmSQlite(
+    new SQLiteConnection(CapacitorSQLite),
+    'Nome do banco',
+    'tipo de criptografia',
+    'modo de criptografia',
+    {{versão: number}},
+    {{somenteLeitura: boolean}}
+    {{MostrarSQlLog: boolean}}
+)
+```
+o plugin ficará responsável por gerenciar todo a parte de conexão, com isso não se preocupe em abrir ou fechar uma nova conexão.
 
-</docgen-index>
-
-<docgen-api>
-<!--Update the source file JSDoc comments and rerun docgen to update the docs below-->
-
-### groupBy(...)
+exemplo básico de usabilidade.
 
 ```typescript
-groupBy<K extends keyof T>(...columns: K[]) => this
+
+import { Column, EntityName, OneToMany } from '@guilhermeabreudev/capacitor-orm-sqlite';
+
+@EntityName('Cliente') // nome da tabela 
+export class Cliente implements ICliente { // class modelo
+
+  //coluna do banco de dados
+  @Column({
+    primaryKey: true
+  })
+  public id!: number;
+
+  @Column()
+  public nome!: number;
+
+  @Column()
+  public descricao!: string;
+
+  /**
+   * Aqui fica um relacionamento entre tabela, nesse caso não pega 
+   * para ativar o relacionamento e preciso no join passar a class modelo nos joins
+   * mais a baixo terá um exemplo
+  */
+  @OneToMany()
+  public carro: Carro[] | null = null;
+
+  constructor(pCliente: Partial<ICliente>) {
+    this.id = pCliente.id ?? this.id;
+    this.nome = pCliente.nome ?? this.nome;
+    this.descricao = pCliente.descricao ?? this.descricao;
+    this.contexto = pCliente.contexto ?? this.contexto;
+  }
+
+}
+
+import { Column, EntityName, ManyToOne } from '@guilhermeabreudev/capacitor-orm-sqlite';
+
+@EntityName('Carro') // nome da tabela 
+export class Carro implements ICarro { // class modelo
+
+  //coluna do banco de dados
+  @Column({
+    primaryKey: true
+  })
+  public id!: number;
+
+  @Column()
+  public marca!: number;
+
+  @Column()
+  public placa!: string;
+
+  @Column()
+  public id_cliente!: string;
+
+  /**
+   * Aqui fica um relacionamento entre tabela, nesse caso não pega 
+   * para ativar o relacionamento e preciso no join passar a class modelo nos joins
+   * mais a baixo terá um exemplo
+  */
+  @ManyToOne()
+  public cliente: IClient | null = null;
+
+  constructor(oCarro: Partial<ICarro>) {
+    this.id = oCarro.id ?? this.id;
+    this.marca = oCarro.marca ?? this.marca;
+    this.placa = oCarro.placa ?? this.placa;
+  }
+
+}
+
+import { DatabaseConnectionOrmSQlite, QueryBuildOrmSQlite } from '@guilhermeabreudev/capacitor-orm-sqlite';
+
+
+class ControladorClienteRepositorio  {
+    public async salvar(clientes: Cliente | Cliente[]): Promise<Cliente[]> {
+        return await DatabaseConnectionOrmSQlite.query(
+        new QueryBuildOrmSQlite(Cliente)
+        .insert(clientes)
+        )
+    }
+
+    public async listarTodos(): Promise<Cliente[]> {
+        const clientes = await DatabaseConnectionOrmSQlite.query<ICliente>(new QueryBuildOrmSQlite(Cliente).getQuery())
+
+        return clientes.map(cliente => new Cliente(cliente))
+    }
+
+    public async listarComCarros(id: number): Promise<Cliente[]> {
+        
+    const clientesComCarros = await DatabaseConnectionOrmSQlite.query<ICliente>(
+        new QueryBuildOrmSQlite(Cliente)
+        .leftJoin(Carro, 'id', 'id_cliente', 'carros');
+        .where('id', id);
+        .getQuery()
+    )
+
+    return clientesComCarros.map(cliente => new Cliente(cliente))
+  }
+}
+
 ```
 
-| Param         | Type             |
-| ------------- | ---------------- |
-| **`columns`** | <code>K[]</code> |
+Lembrando que a tipagem e dinâmica logo, ao inserir a class o plugin se encarrega de ler todas as propriedade e com isso retornar tudo sem precisar ficar tentando lembrar o que está na class.
 
-**Returns:** <code>this</code>
+Também e possível realizar migrações do banco com o tipo IMigrationDatabaseOrmSQLite
 
---------------------
+``DatabaseConnectionOrmSQlite.runMigrationsIfNeeded(MigrationDb)``
 
+Veja tudo em (https://github.com/GuilhermeAbreu/orm-sqlite/tree/main/docs)
 
-### where(...)
+# Contribuição
+Se você deseja contribuir para este projeto, por favor siga os seguintes passos:
 
-```typescript
-where<K extends keyof T>(column: K, value: T[K], operator?: "=" | "<>" | "<" | ">" | "<=" | ">=" | undefined) => this
-```
+Faça um fork do repositório.
 
-| Param          | Type                                                                     |
-| -------------- | ------------------------------------------------------------------------ |
-| **`column`**   | <code>K</code>                                                           |
-| **`value`**    | <code>T[K]</code>                                                        |
-| **`operator`** | <code>'=' \| '&lt;&gt;' \| '&lt;' \| '&gt;' \| '&lt;=' \| '&gt;='</code> |
+Crie uma branch para suas alterações (git checkout -b minha-nova-feature).
 
-**Returns:** <code>this</code>
+Faça commit das suas alterações (git commit -am 'Adiciona nova feature').
 
---------------------
+Envie para o branch do repositório remoto (git push origin minha-nova-feature).
 
+Abra um Pull Request para revisão.
 
-### whereJoin(...)
 
-```typescript
-whereJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, column: K, value: T[K], operator?: "=" | "<>" | "<" | ">" | "<=" | ">=" | undefined) => this
-```
+# Licença
+Este projeto está licenciado sob a Licença MIT.
+Se precisar de mais ajustes ou detalhes, sinta-se à vontade para pedir!
 
-| Param           | Type                                                                           |
-| --------------- | ------------------------------------------------------------------------------ |
-| **`tableName`** | <code><a href="#imodelclassormsqlite">IModelClassOrmSQlite</a>&lt;U&gt;</code> |
-| **`column`**    | <code>K</code>                                                                 |
-| **`value`**     | <code>T[K]</code>                                                              |
-| **`operator`**  | <code>'=' \| '&lt;&gt;' \| '&lt;' \| '&gt;' \| '&lt;=' \| '&gt;='</code>       |
 
-**Returns:** <code>this</code>
 
---------------------
 
 
-### limit(...)
-
-```typescript
-limit(limit: number) => this
-```
-
-| Param       | Type                |
-| ----------- | ------------------- |
-| **`limit`** | <code>number</code> |
-
-**Returns:** <code>this</code>
-
---------------------
-
-
-### offset(...)
-
-```typescript
-offset(offset: number) => this
-```
-
-| Param        | Type                |
-| ------------ | ------------------- |
-| **`offset`** | <code>number</code> |
-
-**Returns:** <code>this</code>
-
---------------------
-
-
-### orderBy(...)
-
-```typescript
-orderBy<K extends keyof T>(column: K, order?: IQueryOptionsOrmSQlite['order']) => this
-```
-
-| Param        | Type                         |
-| ------------ | ---------------------------- |
-| **`column`** | <code>K</code>               |
-| **`order`**  | <code>'ASC' \| 'DESC'</code> |
-
-**Returns:** <code>this</code>
-
---------------------
-
-
-### join(...)
-
-```typescript
-join<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K) => this
-```
-
-| Param            | Type                                                                           |
-| ---------------- | ------------------------------------------------------------------------------ |
-| **`tableName`**  | <code><a href="#imodelclassormsqlite">IModelClassOrmSQlite</a>&lt;U&gt;</code> |
-| **`foreignKey`** | <code>K</code>                                                                 |
-| **`primaryKey`** | <code>keyof U</code>                                                           |
-| **`as`**         | <code>K</code>                                                                 |
-
-**Returns:** <code>this</code>
-
---------------------
-
-
-### leftJoin(...)
-
-```typescript
-leftJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K) => this
-```
-
-| Param            | Type                                                                           |
-| ---------------- | ------------------------------------------------------------------------------ |
-| **`tableName`**  | <code><a href="#imodelclassormsqlite">IModelClassOrmSQlite</a>&lt;U&gt;</code> |
-| **`foreignKey`** | <code>K</code>                                                                 |
-| **`primaryKey`** | <code>keyof U</code>                                                           |
-| **`as`**         | <code>K</code>                                                                 |
-
-**Returns:** <code>this</code>
-
---------------------
-
-
-### getQuery()
-
-```typescript
-getQuery() => string
-```
-
-**Returns:** <code>string</code>
-
---------------------
-
-
-### insert(...)
-
-```typescript
-insert(values: Partial<T> | Partial<T>[]) => string
-```
-
-| Param        | Type                                                                                              |
-| ------------ | ------------------------------------------------------------------------------------------------- |
-| **`values`** | <code><a href="#partial">Partial</a>&lt;T&gt; \| <a href="#partial">Partial</a>&lt;T&gt;[]</code> |
-
-**Returns:** <code>string</code>
-
---------------------
-
-
-### update(...)
-
-```typescript
-update(values: Partial<T>) => string
-```
-
-| Param        | Type                                                 |
-| ------------ | ---------------------------------------------------- |
-| **`values`** | <code><a href="#partial">Partial</a>&lt;T&gt;</code> |
-
-**Returns:** <code>string</code>
-
---------------------
-
-
-### delete()
-
-```typescript
-delete() => string
-```
-
-**Returns:** <code>string</code>
-
---------------------
-
-
-### createTable(...)
-
-```typescript
-createTable(columns: IColumnTypeOrmSQlite<T>[]) => string
-```
-
-| Param         | Type                                                                             |
-| ------------- | -------------------------------------------------------------------------------- |
-| **`columns`** | <code><a href="#icolumntypeormsqlite">IColumnTypeOrmSQlite</a>&lt;T&gt;[]</code> |
-
-**Returns:** <code>string</code>
-
---------------------
-
-
-### addColumn(...)
-
-```typescript
-addColumn(column: IColumnTypeOrmSQlite<T>) => string
-```
-
-| Param        | Type                                                                           |
-| ------------ | ------------------------------------------------------------------------------ |
-| **`column`** | <code><a href="#icolumntypeormsqlite">IColumnTypeOrmSQlite</a>&lt;T&gt;</code> |
-
-**Returns:** <code>string</code>
-
---------------------
-
-
-### dropColumn(...)
-
-```typescript
-dropColumn(columnName: keyof T) => string
-```
-
-| Param            | Type                 |
-| ---------------- | -------------------- |
-| **`columnName`** | <code>keyof T</code> |
-
-**Returns:** <code>string</code>
-
---------------------
-
-
-### alterColumn(...)
-
-```typescript
-alterColumn(column: IColumnTypeOrmSQlite<T>) => string
-```
-
-| Param        | Type                                                                           |
-| ------------ | ------------------------------------------------------------------------------ |
-| **`column`** | <code><a href="#icolumntypeormsqlite">IColumnTypeOrmSQlite</a>&lt;T&gt;</code> |
-
-**Returns:** <code>string</code>
-
---------------------
-
-
-### Interfaces
-
-
-#### IQueryFilterOrmSQlite
-
-| Prop           | Type                                                                     |
-| -------------- | ------------------------------------------------------------------------ |
-| **`column`**   | <code>keyof T</code>                                                     |
-| **`value`**    | <code>any</code>                                                         |
-| **`operator`** | <code>'=' \| '&lt;&gt;' \| '&lt;' \| '&gt;' \| '&lt;=' \| '&gt;='</code> |
-
-
-#### IModelClassOrmSQlite
-
-| Prop             | Type                |
-| ---------------- | ------------------- |
-| **`entityName`** | <code>string</code> |
-
-
-#### IQueryOptionsOrmSQlite
-
-| Prop          | Type                         |
-| ------------- | ---------------------------- |
-| **`limit`**   | <code>number</code>          |
-| **`offset`**  | <code>number</code>          |
-| **`orderBy`** | <code>string</code>          |
-| **`order`**   | <code>'ASC' \| 'DESC'</code> |
-
-
-### Type Aliases
-
-
-#### Partial
-
-Make all properties in T optional
-
-<code>{ [P in keyof T]?: T[P]; }</code>
-
-
-#### IColumnTypeOrmSQlite
-
-<code>{ [K in keyof T]: { name: K; type: 'INTEGER' | 'TEXT' | 'BOOLEAN' | 'DATE'; primaryKey?: boolean; unique?: boolean; notNull?: boolean; defaultValue?: any; autoIncremente?: boolean; }; }[keyof T]</code>
-
-</docgen-api>
