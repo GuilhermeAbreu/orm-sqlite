@@ -1,5 +1,5 @@
 {
-  "name": "@capacitor/orm-sqlite",
+  "name": "@guilhermeabreu/capacitor-orm-sqlite",
   "version": "0.0.1",
   "description": "Gerenciado de sql e banco para sqlite no capacitor",
   "main": "dist/plugin.cjs.js",
@@ -19,10 +19,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/GuilhermeAbreu/orm-sqlite-mobile.git"
+    "url": "git+https://github.com/GuilhermeAbreu/orm-sqlite.git"
   },
   "bugs": {
-    "url": "https://github.com/GuilhermeAbreu/orm-sqlite-mobile/issues"
+    "url": "https://github.com/GuilhermeAbreu/orm-sqlite/issues"
   },
   "keywords": [
     "capacitor",
