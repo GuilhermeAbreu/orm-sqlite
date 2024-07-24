@@ -1,5 +1,5 @@
 import { getPrimaryKey, isColumn, isColunaRelacionamento, isManyToMany, isOneToMany } from '../decoratiors/decoratiors.orm';
-import { IColumnType, IJoinClause, IModelClass, IQueryBuild, IQueryFilter, IQueryOptions, leftJoinClause } from './query-build.definicions';
+import { IColumnType, IJoinClause, IModelClass, IQueryBuild, IQueryFilter, IQueryOptions, leftJoinClause } from './query-build.definitions';
 
 export class QueryBuild<T = any> implements IQueryBuild<T> {
 
