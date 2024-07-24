@@ -58,6 +58,7 @@ export class DatabaseConnection implements IDatabaseConnection {
     throw new Error('This method is not an instance method, use the static method');
   }
   createOrReconnectConnection(forceCreate: boolean): Promise<SQLiteDBConnection> {
+    forceCreate;
     throw new Error('This method is not an instance method, use the static method');
   }
   closeDB(): Promise<void> {
@@ -73,21 +74,26 @@ export class DatabaseConnection implements IDatabaseConnection {
     throw new Error('This method is not an instance method, use the static method');
   }
   execute(sql: string): Promise<boolean> {
+    sql;
     throw new Error('This method is not an instance method, use the static method');
   }
   query<T = any>(sql: string): Promise<T[]> {
+    sql;
     throw new Error('This method is not an instance method, use the static method');
   }
   getCurrentDBVersion(): Promise<number | undefined> {
     throw new Error('This method is not an instance method, use the static method');
   }
   updateDBVersion(newVersion: number): Promise<void> {
+    newVersion;
     throw new Error('This method is not an instance method, use the static method');
   }
   recreateDatabase(migration: any[]): Promise<void> {
+    migration;
     throw new Error('This method is not an instance method, use the static method');
   }
   runMigrationsIfNeeded(migrations: any[]): Promise<void> {
+    migrations;
     throw new Error('This method is not an instance method, use the static method');
   }
 
@@ -102,10 +108,10 @@ export class DatabaseConnection implements IDatabaseConnection {
   public static async createOrReconnectConnection(forceCreate: boolean): Promise<SQLiteDBConnection> {
     try {
       const isConsistent = forceCreate || !(await this.sqlite.checkConnectionsConsistency())?.result;
-      const dbName = DatabaseConnection.name;
+      const dbName = this.database;
 
       if (!isConsistent) {
-        console.debug(DatabaseConnection.name, `Reconnecting to database ${dbName}`);
+        console.debug(`Reconnecting to database ${dbName}`);
         return await this.sqlite.retrieveConnection(dbName, this.readonly);
       }
 
