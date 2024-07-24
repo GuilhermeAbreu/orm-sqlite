@@ -1,5 +1,5 @@
 {
-  "name": "@guilhermeabreu/capacitor-orm-sqlite",
+  "name": "@guilhermeabreudev/capacitor-orm-sqlite",
   "version": "0.0.1",
   "description": "Gerenciado de sql e banco para sqlite no capacitor",
   "main": "dist/plugin.cjs.js",
