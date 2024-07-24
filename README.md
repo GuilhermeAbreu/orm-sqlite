@@ -72,15 +72,15 @@ where<K extends keyof T>(column: K, value: T[K], operator?: "=" | "<>" | "<" | "
 ### whereJoin(...)
 
 ```typescript
-whereJoin<K extends keyof T, U>(tableName: IModelClass<U>, column: K, value: T[K], operator?: "=" | "<>" | "<" | ">" | "<=" | ">=" | undefined) => this
+whereJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, column: K, value: T[K], operator?: "=" | "<>" | "<" | ">" | "<=" | ">=" | undefined) => this
 ```
 
-| Param           | Type                                                                     |
-| --------------- | ------------------------------------------------------------------------ |
-| **`tableName`** | <code><a href="#imodelclass">IModelClass</a>&lt;U&gt;</code>             |
-| **`column`**    | <code>K</code>                                                           |
-| **`value`**     | <code>T[K]</code>                                                        |
-| **`operator`**  | <code>'=' \| '&lt;&gt;' \| '&lt;' \| '&gt;' \| '&lt;=' \| '&gt;='</code> |
+| Param           | Type                                                                           |
+| --------------- | ------------------------------------------------------------------------------ |
+| **`tableName`** | <code><a href="#imodelclassormsqlite">IModelClassOrmSQlite</a>&lt;U&gt;</code> |
+| **`column`**    | <code>K</code>                                                                 |
+| **`value`**     | <code>T[K]</code>                                                              |
+| **`operator`**  | <code>'=' \| '&lt;&gt;' \| '&lt;' \| '&gt;' \| '&lt;=' \| '&gt;='</code>       |
 
 **Returns:** <code>this</code>
 
@@ -120,7 +120,7 @@ offset(offset: number) => this
 ### orderBy(...)
 
 ```typescript
-orderBy<K extends keyof T>(column: K, order?: IQueryOptions['order']) => this
+orderBy<K extends keyof T>(column: K, order?: IQueryOptionsOrmSQlite['order']) => this
 ```
 
 | Param        | Type                         |
@@ -136,15 +136,15 @@ orderBy<K extends keyof T>(column: K, order?: IQueryOptions['order']) => this
 ### join(...)
 
 ```typescript
-join<K extends keyof T, U>(tableName: IModelClass<U>, foreignKey: K, primaryKey: keyof U, as: K) => this
+join<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K) => this
 ```
 
-| Param            | Type                                                         |
-| ---------------- | ------------------------------------------------------------ |
-| **`tableName`**  | <code><a href="#imodelclass">IModelClass</a>&lt;U&gt;</code> |
-| **`foreignKey`** | <code>K</code>                                               |
-| **`primaryKey`** | <code>keyof U</code>                                         |
-| **`as`**         | <code>K</code>                                               |
+| Param            | Type                                                                           |
+| ---------------- | ------------------------------------------------------------------------------ |
+| **`tableName`**  | <code><a href="#imodelclassormsqlite">IModelClassOrmSQlite</a>&lt;U&gt;</code> |
+| **`foreignKey`** | <code>K</code>                                                                 |
+| **`primaryKey`** | <code>keyof U</code>                                                           |
+| **`as`**         | <code>K</code>                                                                 |
 
 **Returns:** <code>this</code>
 
@@ -154,15 +154,15 @@ join<K extends keyof T, U>(tableName: IModelClass<U>, foreignKey: K, primaryKey:
 ### leftJoin(...)
 
 ```typescript
-leftJoin<K extends keyof T, U>(tableName: IModelClass<U>, foreignKey: K, primaryKey: keyof U, as: K) => this
+leftJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K) => this
 ```
 
-| Param            | Type                                                         |
-| ---------------- | ------------------------------------------------------------ |
-| **`tableName`**  | <code><a href="#imodelclass">IModelClass</a>&lt;U&gt;</code> |
-| **`foreignKey`** | <code>K</code>                                               |
-| **`primaryKey`** | <code>keyof U</code>                                         |
-| **`as`**         | <code>K</code>                                               |
+| Param            | Type                                                                           |
+| ---------------- | ------------------------------------------------------------------------------ |
+| **`tableName`**  | <code><a href="#imodelclassormsqlite">IModelClassOrmSQlite</a>&lt;U&gt;</code> |
+| **`foreignKey`** | <code>K</code>                                                                 |
+| **`primaryKey`** | <code>keyof U</code>                                                           |
+| **`as`**         | <code>K</code>                                                                 |
 
 **Returns:** <code>this</code>
 
@@ -224,12 +224,12 @@ delete() => string
 ### createTable(...)
 
 ```typescript
-createTable(columns: IColumnType<T>[]) => string
+createTable(columns: IColumnTypeOrmSQlite<T>[]) => string
 ```
 
-| Param         | Type                                                           |
-| ------------- | -------------------------------------------------------------- |
-| **`columns`** | <code><a href="#icolumntype">IColumnType</a>&lt;T&gt;[]</code> |
+| Param         | Type                                                                             |
+| ------------- | -------------------------------------------------------------------------------- |
+| **`columns`** | <code><a href="#icolumntypeormsqlite">IColumnTypeOrmSQlite</a>&lt;T&gt;[]</code> |
 
 **Returns:** <code>string</code>
 
@@ -239,12 +239,12 @@ createTable(columns: IColumnType<T>[]) => string
 ### addColumn(...)
 
 ```typescript
-addColumn(column: IColumnType<T>) => string
+addColumn(column: IColumnTypeOrmSQlite<T>) => string
 ```
 
-| Param        | Type                                                         |
-| ------------ | ------------------------------------------------------------ |
-| **`column`** | <code><a href="#icolumntype">IColumnType</a>&lt;T&gt;</code> |
+| Param        | Type                                                                           |
+| ------------ | ------------------------------------------------------------------------------ |
+| **`column`** | <code><a href="#icolumntypeormsqlite">IColumnTypeOrmSQlite</a>&lt;T&gt;</code> |
 
 **Returns:** <code>string</code>
 
@@ -269,12 +269,12 @@ dropColumn(columnName: keyof T) => string
 ### alterColumn(...)
 
 ```typescript
-alterColumn(column: IColumnType<T>) => string
+alterColumn(column: IColumnTypeOrmSQlite<T>) => string
 ```
 
-| Param        | Type                                                         |
-| ------------ | ------------------------------------------------------------ |
-| **`column`** | <code><a href="#icolumntype">IColumnType</a>&lt;T&gt;</code> |
+| Param        | Type                                                                           |
+| ------------ | ------------------------------------------------------------------------------ |
+| **`column`** | <code><a href="#icolumntypeormsqlite">IColumnTypeOrmSQlite</a>&lt;T&gt;</code> |
 
 **Returns:** <code>string</code>
 
@@ -284,7 +284,7 @@ alterColumn(column: IColumnType<T>) => string
 ### Interfaces
 
 
-#### IQueryFilter
+#### IQueryFilterOrmSQlite
 
 | Prop           | Type                                                                     |
 | -------------- | ------------------------------------------------------------------------ |
@@ -293,14 +293,14 @@ alterColumn(column: IColumnType<T>) => string
 | **`operator`** | <code>'=' \| '&lt;&gt;' \| '&lt;' \| '&gt;' \| '&lt;=' \| '&gt;='</code> |
 
 
-#### IModelClass
+#### IModelClassOrmSQlite
 
 | Prop             | Type                |
 | ---------------- | ------------------- |
 | **`entityName`** | <code>string</code> |
 
 
-#### IQueryOptions
+#### IQueryOptionsOrmSQlite
 
 | Prop          | Type                         |
 | ------------- | ---------------------------- |
@@ -320,7 +320,7 @@ Make all properties in T optional
 <code>{ [P in keyof T]?: T[P]; }</code>
 
 
-#### IColumnType
+#### IColumnTypeOrmSQlite
 
 <code>{ [K in keyof T]: { name: K; type: 'INTEGER' | 'TEXT' | 'BOOLEAN' | 'DATE'; primaryKey?: boolean; unique?: boolean; notNull?: boolean; defaultValue?: any; autoIncremente?: boolean; }; }[keyof T]</code>
 
