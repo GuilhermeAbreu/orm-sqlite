@@ -1,8 +1,8 @@
-import { DatabaseConnection } from './database/database';
-import { QueryBuild } from './query/query-build';
+import { DatabaseConnectionOrmSQlite } from './database/database';
+import { QueryBuildOrmSQlite } from './query/query-build';
 
 
 export * from './decoratiors/decoratiors.orm';
 export * from './definitions';
-export { DatabaseConnection, QueryBuild };
+export { DatabaseConnectionOrmSQlite, QueryBuildOrmSQlite };
 

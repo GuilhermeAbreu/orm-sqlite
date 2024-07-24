@@ -1,7 +1,7 @@
 import { CapacitorSQLite, SQLiteConnection, SQLiteDBConnection } from '@capacitor-community/sqlite';
 import { IDatabaseConnectionOrmSQLite, IMigrationDatabaseOrmSQLite } from './database.definitions';
 
-export class DatabaseConnection implements IDatabaseConnectionOrmSQLite {
+export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite {
 
   protected static sqlite: SQLiteConnection;
   private static _DB: SQLiteDBConnection;
@@ -21,13 +21,13 @@ export class DatabaseConnection implements IDatabaseConnectionOrmSQLite {
     readonly: boolean,
     log: boolean
   ) {
-    DatabaseConnection.sqlite = SQLiteConnection;
-    DatabaseConnection.database = database;
-    DatabaseConnection.encrypted = encrypted;
-    DatabaseConnection.mode = mode;
-    DatabaseConnection.version = version;
-    DatabaseConnection.readonly = readonly;
-    DatabaseConnection.log = log
+    DatabaseConnectionOrmSQlite.sqlite = SQLiteConnection;
+    DatabaseConnectionOrmSQlite.database = database;
+    DatabaseConnectionOrmSQlite.encrypted = encrypted;
+    DatabaseConnectionOrmSQlite.mode = mode;
+    DatabaseConnectionOrmSQlite.version = version;
+    DatabaseConnectionOrmSQlite.readonly = readonly;
+    DatabaseConnectionOrmSQlite.log = log
   }
 
   get database(): string {
@@ -102,7 +102,7 @@ export class DatabaseConnection implements IDatabaseConnectionOrmSQLite {
   }
 
   public static async isOpen(): Promise<boolean> {
-    return (await DatabaseConnection._DB.isDBOpen()).result ?? false;
+    return (await DatabaseConnectionOrmSQlite._DB.isDBOpen()).result ?? false;
   }
 
   public static async createOrReconnectConnection(forceCreate: boolean): Promise<SQLiteDBConnection> {
@@ -211,11 +211,11 @@ export class DatabaseConnection implements IDatabaseConnectionOrmSQLite {
     } catch (error) {
       console.error('Error:', error);
     }
-    DatabaseConnection._DB = await this.createOrReconnectConnection(false);
-    if (!(await DatabaseConnection._DB.isDBOpen()).result) {
-      await DatabaseConnection._DB.open();
+    DatabaseConnectionOrmSQlite._DB = await this.createOrReconnectConnection(false);
+    if (!(await DatabaseConnectionOrmSQlite._DB.isDBOpen()).result) {
+      await DatabaseConnectionOrmSQlite._DB.open();
     }
-    return DatabaseConnection._DB;
+    return DatabaseConnectionOrmSQlite._DB;
   }
 
   private static async createDBVersionTableIfNotExists(): Promise<void> {

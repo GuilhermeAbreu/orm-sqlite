@@ -1,7 +1,7 @@
 import { getPrimaryKey, isColumn, isColunaRelacionamento, isManyToMany, isOneToMany } from '../decoratiors/decoratiors.orm';
 import { IColumnTypeOrmSQlite, IJoinClauseOrmSQlite, IModelClassOrmSQlite, IQueryBuildOrmSQlite, IQueryFilterOrmSQlite, IQueryOptionsOrmSQlite, leftJoinClauseOrmSQlite } from './query-build.definitions';
 
-export class QueryBuild<T = any> implements IQueryBuildOrmSQlite<T> {
+export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
 
     private tableName: string;
     private filters: IQueryFilterOrmSQlite<T>[];
