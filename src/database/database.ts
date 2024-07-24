@@ -1,7 +1,7 @@
 import { CapacitorSQLite, SQLiteConnection, SQLiteDBConnection } from '@capacitor-community/sqlite';
-import { IDatabaseConnection } from './database.definitions';
+import { IDatabaseConnectionOrmSQLite, IMigrationDatabaseOrmSQLite } from './database.definitions';
 
-export class DatabaseConnection implements IDatabaseConnection {
+export class DatabaseConnection implements IDatabaseConnectionOrmSQLite {
 
   protected static sqlite: SQLiteConnection;
   private static _DB: SQLiteDBConnection;
@@ -153,7 +153,7 @@ export class DatabaseConnection implements IDatabaseConnection {
 
   public static async execute(sql: string): Promise<boolean> {
     if (this.log) {
-      console.debug(this.name, sql);
+      console.debug(this.database, sql);
     }
     const db = await this.db;
     const result = await db.run(sql, undefined, false);
@@ -162,7 +162,7 @@ export class DatabaseConnection implements IDatabaseConnection {
 
   public static async query<T = any>(sql: string): Promise<T[]> {
     if (this.log) {
-      console.debug(this.name, sql);
+      console.debug(this.database, sql);
     }
     const db = await this.db;
     const result: any = await db.query(sql);
@@ -189,13 +189,13 @@ export class DatabaseConnection implements IDatabaseConnection {
   }
 
   public static async runMigrationsIfNeeded(migrations: any[]): Promise<void> {
-    console.debug(this.name, 'Checking if migrations are needed.');
+    console.debug(this.database, 'Checking if migrations are needed.');
     await this.createDBVersionTableIfNotExists();
 
     const currentVersion = await this.getCurrentDBVersion();
 
     if (currentVersion === undefined) {
-      console.debug(this.name, 'Initial migration required.');
+      console.debug(this.database, 'Initial migration required.');
       await this.runInitialMigrations(migrations);
     } else {
       await this.migrateIfNeeded(migrations, currentVersion);
@@ -206,9 +206,8 @@ export class DatabaseConnection implements IDatabaseConnection {
 
   private static async initializeDB(): Promise<SQLiteDBConnection> {
     try {
-      console.log(await this.sqlite.getDatabaseList());
       const result = await this.sqlite.checkConnectionsConsistency();
-      console.log('Connection Consistency:', result);
+      console.debug('Connection Consistency:', result);
     } catch (error) {
       console.error('Error:', error);
     }
@@ -237,19 +236,19 @@ export class DatabaseConnection implements IDatabaseConnection {
     }
   }
 
-  private static async migrateIfNeeded(migrations: any[], currentVersion: number): Promise<void> {
+  private static async migrateIfNeeded(migrations: IMigrationDatabaseOrmSQLite[], currentVersion: number): Promise<void> {
     const expectedVersion = migrations[migrations.length - 1].version;
     if (currentVersion < expectedVersion) {
-      console.debug(this.name, `Migrating database: current version ${currentVersion}, expected version ${expectedVersion}`);
+      console.debug(this.database, `Migrating database: current version ${currentVersion}, expected version ${expectedVersion}`);
       for (let version = currentVersion + 1; version <= expectedVersion; version++) {
         await this.migrateToVersion(migrations, version);
       }
     } else {
-      console.debug(this.name, 'No migration needed.');
+      console.debug(this.database, 'No migration needed.');
     }
   }
 
-  private static async migrateToVersion(migrations: any[], version: number): Promise<void> {
+  private static async migrateToVersion(migrations: IMigrationDatabaseOrmSQLite[], version: number): Promise<void> {
     const migration = migrations.find(m => m.version === version);
     if (migration) {
       for (const sql of migration.sql) {

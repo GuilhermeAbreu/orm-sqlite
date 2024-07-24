@@ -1,18 +1,18 @@
 import { getPrimaryKey, isColumn, isColunaRelacionamento, isManyToMany, isOneToMany } from '../decoratiors/decoratiors.orm';
-import { IColumnType, IJoinClause, IModelClass, IQueryBuild, IQueryFilter, IQueryOptions, leftJoinClause } from './query-build.definitions';
+import { IColumnTypeOrmSQlite, IJoinClauseOrmSQlite, IModelClassOrmSQlite, IQueryBuildOrmSQlite, IQueryFilterOrmSQlite, IQueryOptionsOrmSQlite, leftJoinClauseOrmSQlite } from './query-build.definitions';
 
-export class QueryBuild<T = any> implements IQueryBuild<T> {
+export class QueryBuild<T = any> implements IQueryBuildOrmSQlite<T> {
 
     private tableName: string;
-    private filters: IQueryFilter<T>[];
-    private filtersJoin: IQueryFilter<T>[];
-    private options: IQueryOptions;
-    private joinClauses: IJoinClause[];
-    private leftJoinClauses: leftJoinClause[];
+    private filters: IQueryFilterOrmSQlite<T>[];
+    private filtersJoin: IQueryFilterOrmSQlite<T>[];
+    private options: IQueryOptionsOrmSQlite;
+    private joinClauses: IJoinClauseOrmSQlite[];
+    private leftJoinClauses: leftJoinClauseOrmSQlite[];
     private groupByColumns: (keyof T)[];
-    private classModel: IModelClass<T>;
+    private classModel: IModelClassOrmSQlite<T>;
 
-    constructor(modelClass: IModelClass<T>) {
+    constructor(modelClass: IModelClassOrmSQlite<T>) {
         this.tableName = this.getClassName(modelClass).toLowerCase();
         this.classModel = modelClass;
         this.filters = [];
@@ -28,7 +28,7 @@ export class QueryBuild<T = any> implements IQueryBuild<T> {
         return this;
       }
     
-      private getClassName<T>(modelClass: IModelClass<T>): string {
+      private getClassName<T>(modelClass: IModelClassOrmSQlite<T>): string {
         const className = modelClass.entityName;
     
         if (!className) {
@@ -38,7 +38,7 @@ export class QueryBuild<T = any> implements IQueryBuild<T> {
         return className.replace(/([a-z])([A-Z])/g, '$1_$2').toLowerCase();
       }
     
-      where<K extends keyof T>(column: K & (string extends K ? never : keyof T), value: T[K], operator: IQueryFilter<T>['operator'] = '='): this {
+      where<K extends keyof T>(column: K & (string extends K ? never : keyof T), value: T[K], operator: IQueryFilterOrmSQlite<T>['operator'] = '='): this {
     
         if (!isColumn(this.classModel.prototype, column as string)) {
           throw new Error(`Column '${column as string}' does not exist or is not decorated as @Column.`);
@@ -49,7 +49,7 @@ export class QueryBuild<T = any> implements IQueryBuild<T> {
         return this;
       }
     
-      whereJoin<K extends keyof T, U>(tableName: IModelClass<U>, column: K, value: T[K], operator: IQueryFilter<T>['operator'] = '='): this {
+      whereJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, column: K, value: T[K], operator: IQueryFilterOrmSQlite<T>['operator'] = '='): this {
         const tableNameStr = this.getClassName(tableName).toLowerCase();
         const qualifiedColumn = String(`${tableNameStr}.${column.toString()}`) as keyof T; // Conversão correta para string
     
@@ -67,13 +67,13 @@ export class QueryBuild<T = any> implements IQueryBuild<T> {
         return this;
       }
     
-      orderBy(column: keyof T, order: IQueryOptions['order'] = 'ASC') {
+      orderBy(column: keyof T, order: IQueryOptionsOrmSQlite['order'] = 'ASC') {
         this.options.orderBy = String(column);
         this.options.order = order;
         return this;
       }
     
-      join<K extends keyof T, U>(tableName: IModelClass<U>, foreignKey: K, primaryKey: keyof U, as: K): this {
+      join<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K): this {
         const tableNameStr = this.getClassName(tableName).toLowerCase();
         this.joinClauses.push({
           tableName: tableNameStr,
@@ -85,7 +85,7 @@ export class QueryBuild<T = any> implements IQueryBuild<T> {
         return this;
       }
     
-      leftJoin<K extends keyof T, U>(tableName: IModelClass<U>, foreignKey: K, primaryKey: keyof U, as: K): this {
+      leftJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K): this {
         const tableNameStr = this.getClassName(tableName).toLowerCase();
         this.leftJoinClauses.push({
           tableName: tableNameStr,
@@ -246,7 +246,7 @@ export class QueryBuild<T = any> implements IQueryBuild<T> {
       }
     
     
-      private isRelationalField<U = T>(value: any, classModel?: IModelClass<U>): boolean {
+      private isRelationalField<U = T>(value: any, classModel?: IModelClassOrmSQlite<U>): boolean {
         if (value instanceof Date) {
           return false;
         }
@@ -310,7 +310,7 @@ export class QueryBuild<T = any> implements IQueryBuild<T> {
         return query;
       }
     
-      createTable(columns: IColumnType<T>[]): string {
+      createTable(columns: IColumnTypeOrmSQlite<T>[]): string {
         const columnDefinitions = columns.map(column => {
           let definition = `${column.name as string} ${column.type}`;
     
@@ -340,7 +340,7 @@ export class QueryBuild<T = any> implements IQueryBuild<T> {
         return `CREATE TABLE IF NOT EXISTS ${this.tableName} (${columnDefinitions.join(', ')})`;
       }
     
-      addColumn(column: IColumnType<T>): string {
+      addColumn(column: IColumnTypeOrmSQlite<T>): string {
         let columnDefinition = `${column.name as string} ${column.type}`;
         if (column.primaryKey) {
           columnDefinition += ' PRIMARY KEY';
@@ -365,7 +365,7 @@ export class QueryBuild<T = any> implements IQueryBuild<T> {
         return `ALTER TABLE ${this.tableName} DROP COLUMN ${String(columnName)}`;
       }
     
-      alterColumn(column: IColumnType<T>): string {
+      alterColumn(column: IColumnTypeOrmSQlite<T>): string {
         let columnDefinition = `${column.name as string} ${column.type}`;
         if (column.primaryKey) {
           columnDefinition += ' PRIMARY KEY';

@@ -1,6 +1,6 @@
 import type { SQLiteDBConnection } from '@capacitor-community/sqlite';
 
-export interface IDatabaseConnection {
+export interface IDatabaseConnectionOrmSQLite {
     database: string;
     encrypted: boolean;
     mode: string;
@@ -20,4 +20,9 @@ export interface IDatabaseConnection {
     updateDBVersion(newVersion: number): Promise<void>;
     recreateDatabase(migration: any[]): Promise<void>;
     runMigrationsIfNeeded(migrations: any[]): Promise<void>;
+  }
+
+  export interface IMigrationDatabaseOrmSQLite {
+    version: number,
+    sql: string[]
   }
