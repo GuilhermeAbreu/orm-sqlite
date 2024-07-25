@@ -234,7 +234,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     
       private formatValue(value: any): string {
         if (value instanceof Date) {
-          return `'${value.toISOString().slice(0, 19).replace('T', ' ')}'`;
+          return `'${new Date((value.getTime() - value.getTimezoneOffset() * 60 * 1000)).toISOString().slice(0, 19).replace('T', ' ')}'`;
         } else if (typeof value === 'string') {
           return `'${value.replace(/'/g, "''")}'`;
         } else if (typeof value === 'number' || typeof value === 'boolean') {
