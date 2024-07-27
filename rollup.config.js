@@ -7,6 +7,7 @@ export default {
       name: 'capacitorExample',
       globals: {
         '@capacitor/core': 'capacitorExports',
+        '@capacitor-community/sqlite': 'capacitorCommunitySqlite'
       },
       sourcemap: true,
       inlineDynamicImports: true,
@@ -18,5 +19,5 @@ export default {
       inlineDynamicImports: true,
     },
   ],
-  external: ['@capacitor/core'],
+  external: ['@capacitor/core', '@capacitor-community/sqlite'],
 };
