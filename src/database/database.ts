@@ -1,5 +1,7 @@
-import { CapacitorSQLite, SQLiteConnection, SQLiteDBConnection } from '@capacitor-community/sqlite';
-import { IDatabaseConfig, IDatabaseConnectionOrmSQLite, IMigrationDatabaseOrmSQLite } from './database.definitions';
+import type { SQLiteConnection, SQLiteDBConnection } from '@capacitor-community/sqlite';
+import { CapacitorSQLite } from '@capacitor-community/sqlite';
+
+import type { IDatabaseConfig, IDatabaseConnectionOrmSQLite, IMigrationDatabaseOrmSQLite } from './database.definitions';
 
 export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite {
 
@@ -57,7 +59,7 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
     throw new Error('This method is not an instance method, use the static method');
   }
 
-  public static setConfig(config: Partial<typeof DatabaseConnectionOrmSQlite.config>) {
+  public static setConfig(config: Partial<typeof DatabaseConnectionOrmSQlite.config>): void {
     DatabaseConnectionOrmSQlite.config = { ...DatabaseConnectionOrmSQlite.config, ...config };
     DatabaseConnectionOrmSQlite._DB = undefined;  // Reset DB connection to force reinitialization with new config
   }

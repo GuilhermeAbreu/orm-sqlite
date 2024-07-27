@@ -13,14 +13,14 @@ export function EntityName(name: string): ClassDecorator {
   }
   
   // Decorador para colunas
-  export function Column(pOpcao: { primaryKey?: boolean } = { primaryKey: false }): PropertyDecorator {
+ export function Column(pOpcao?: { primaryKey: boolean }): PropertyDecorator {
     return function (target: any, propertyKey: string | symbol) {
       if (!target.constructor.prototype.propertyActions) {
         target.constructor.prototype.propertyActions = [];
       }
       target.constructor.prototype.propertyActions.push(() => {
         defineMetadata(target, propertyKey, 'isColumn', true);
-        if (pOpcao.primaryKey) {
+        if (pOpcao?.primaryKey) {
           defineMetadata(target, propertyKey, 'isPrimaryKey', true);
         }
       });

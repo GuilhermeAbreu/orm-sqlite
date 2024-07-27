@@ -1,7 +1,7 @@
 const metadataStore: Record<string, any> = {};
 
 // Definindo metadados
-export function defineMetadata(target: any, propertyKey: string | symbol, metadataKey: string, metadataValue: any) {
+export function defineMetadata(target: any, propertyKey: string | symbol, metadataKey: string, metadataValue: any): void {
   const className = target.constructor.entityName;
   if (!metadataStore[className]) {
     metadataStore[className] = {};
@@ -12,18 +12,18 @@ export function defineMetadata(target: any, propertyKey: string | symbol, metada
   metadataStore[className][propertyKey][metadataKey] = metadataValue;
 }
 
-export function getMetadata(target: any, propertyKey: string | symbol, metadataKey: string) {
+export function getMetadata(target: any, propertyKey: string | symbol, metadataKey: string): any {
   const className = target.constructor.entityName;
   return metadataStore[className]?.[propertyKey]?.[metadataKey];
 }
 
-export function getMetadataAllByName(target: any): Object {
+export function getMetadataAllByName(target: any): any {
   const className = target.constructor.entityName;
   return metadataStore[className];
 }
 
 // Definindo o nome da entidade
-export function defineClassMetadata(target: any, metadataKey: string, metadataValue: any) {
+export function defineClassMetadata(target: any, metadataKey: string, metadataValue: any): void {
   const className = target.entityName;
   if (!metadataStore[className]) {
     metadataStore[className] = {};
@@ -31,7 +31,7 @@ export function defineClassMetadata(target: any, metadataKey: string, metadataVa
   metadataStore[className][metadataKey] = metadataValue;
 }
 
-export function getClassMetadata(target: any, metadataKey: string) {
+export function getClassMetadata(target: any, metadataKey: string) : any {
   const className = target.entityName;
   return metadataStore[className]?.[metadataKey];
 }

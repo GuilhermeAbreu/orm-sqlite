@@ -29,6 +29,9 @@ npx cap sync
 * [`addColumn(...)`](#addcolumn)
 * [`dropColumn(...)`](#dropcolumn)
 * [`alterColumn(...)`](#altercolumn)
+* [`rightJoin(...)`](#rightjoin)
+* [`fullJoin(...)`](#fulljoin)
+* [`distinct(...)`](#distinct)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 
@@ -281,6 +284,57 @@ alterColumn(column: IColumnTypeOrmSQlite<T>) => string
 --------------------
 
 
+### rightJoin(...)
+
+```typescript
+rightJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K) => this
+```
+
+| Param            | Type                                                                           |
+| ---------------- | ------------------------------------------------------------------------------ |
+| **`tableName`**  | <code><a href="#imodelclassormsqlite">IModelClassOrmSQlite</a>&lt;U&gt;</code> |
+| **`foreignKey`** | <code>K</code>                                                                 |
+| **`primaryKey`** | <code>keyof U</code>                                                           |
+| **`as`**         | <code>K</code>                                                                 |
+
+**Returns:** <code>this</code>
+
+--------------------
+
+
+### fullJoin(...)
+
+```typescript
+fullJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K) => this
+```
+
+| Param            | Type                                                                           |
+| ---------------- | ------------------------------------------------------------------------------ |
+| **`tableName`**  | <code><a href="#imodelclassormsqlite">IModelClassOrmSQlite</a>&lt;U&gt;</code> |
+| **`foreignKey`** | <code>K</code>                                                                 |
+| **`primaryKey`** | <code>keyof U</code>                                                           |
+| **`as`**         | <code>K</code>                                                                 |
+
+**Returns:** <code>this</code>
+
+--------------------
+
+
+### distinct(...)
+
+```typescript
+distinct<K extends keyof T>(...columns: K[]) => this
+```
+
+| Param         | Type             |
+| ------------- | ---------------- |
+| **`columns`** | <code>K[]</code> |
+
+**Returns:** <code>this</code>
+
+--------------------
+
+
 ### Interfaces
 
 
@@ -291,6 +345,7 @@ alterColumn(column: IColumnTypeOrmSQlite<T>) => string
 | **`column`**   | <code>keyof T</code>                                                     |
 | **`value`**    | <code>any</code>                                                         |
 | **`operator`** | <code>'=' \| '&lt;&gt;' \| '&lt;' \| '&gt;' \| '&lt;=' \| '&gt;='</code> |
+| **`isHaving`** | <code>boolean</code>                                                     |
 
 
 #### IModelClassOrmSQlite
@@ -302,12 +357,13 @@ alterColumn(column: IColumnTypeOrmSQlite<T>) => string
 
 #### IQueryOptionsOrmSQlite
 
-| Prop          | Type                         |
-| ------------- | ---------------------------- |
-| **`limit`**   | <code>number</code>          |
-| **`offset`**  | <code>number</code>          |
-| **`orderBy`** | <code>string</code>          |
-| **`order`**   | <code>'ASC' \| 'DESC'</code> |
+| Prop           | Type                         |
+| -------------- | ---------------------------- |
+| **`limit`**    | <code>number</code>          |
+| **`offset`**   | <code>number</code>          |
+| **`orderBy`**  | <code>string</code>          |
+| **`order`**    | <code>'ASC' \| 'DESC'</code> |
+| **`distinct`** | <code>T[]</code>             |
 
 
 ### Type Aliases
@@ -322,6 +378,6 @@ Make all properties in T optional
 
 #### IColumnTypeOrmSQlite
 
-<code>{ [K in keyof T]: { name: K; type: 'INTEGER' | 'TEXT' | 'BOOLEAN' | 'DATE'; primaryKey?: boolean; unique?: boolean; notNull?: boolean; defaultValue?: any; autoIncremente?: boolean; }; }[keyof T]</code>
+<code>{ [K in keyof T]: { name: K; type: 'INTEGER' | 'TEXT' | 'BOOLEAN' | 'DATE'; primaryKey?: boolean; unique?: boolean; notNull?: boolean; defaultValue?: any; autoIncremente?: boolean; }; }[keyof T]</code>
 
 </docgen-api>
