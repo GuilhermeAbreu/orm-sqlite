@@ -165,7 +165,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
           `);
           return;
         }
-
+        
         jsonSelects.push(`
           CASE
             WHEN ${joinClause.as as string}.${getPrimaryKey(joinClassInstance) as string} IS NOT NULL THEN
