@@ -3,13 +3,15 @@ export interface IQueryFilterOrmSQlite<T> {
     column: keyof T;
     value: any;
     operator: '=' | '<>' | '<' | '>' | '<=' | '>=';
+    isHaving?: boolean;
 }
 
-export interface IQueryOptionsOrmSQlite {
+export interface IQueryOptionsOrmSQlite<T = any> {
     limit?: number;
     offset?: number;
     orderBy?: string;
     order?: 'ASC' | 'DESC';
+    distinct?: T[]
 }
 
 export interface IJoinClauseOrmSQlite<T = any, U = any> {
@@ -82,4 +84,7 @@ export interface IQueryBuildOrmSQlite<T = any> {
     addColumn(column: IColumnTypeOrmSQlite<T>): string;
     dropColumn(columnName: keyof T): string;
     alterColumn(column: IColumnTypeOrmSQlite<T>): string;
+    rightJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K): this;
+    fullJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K): this;
+    distinct<K extends keyof T>(...columns: K[]): this;
 }
