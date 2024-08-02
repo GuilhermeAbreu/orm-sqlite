@@ -75,15 +75,15 @@ where<K extends keyof T>(column: K, value: T[K], operator?: "=" | "<>" | "<" | "
 ### whereJoin(...)
 
 ```typescript
-whereJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, column: K, value: T[K], operator?: "=" | "<>" | "<" | ">" | "<=" | ">=" | undefined) => this
+whereJoin<K extends keyof T, U>(tableNameOrColumnTableReference: IModelClassOrmSQlite<U> | K, column: K, value: T[K], operator: IQueryFilterOrmSQlite<T>['operator']) => this
 ```
 
-| Param           | Type                                                                           |
-| --------------- | ------------------------------------------------------------------------------ |
-| **`tableName`** | <code><a href="#imodelclassormsqlite">IModelClassOrmSQlite</a>&lt;U&gt;</code> |
-| **`column`**    | <code>K</code>                                                                 |
-| **`value`**     | <code>T[K]</code>                                                              |
-| **`operator`**  | <code>'=' \| '&lt;&gt;' \| '&lt;' \| '&gt;' \| '&lt;=' \| '&gt;='</code>       |
+| Param                                 | Type                                                                                |
+| ------------------------------------- | ----------------------------------------------------------------------------------- |
+| **`tableNameOrColumnTableReference`** | <code>K \| <a href="#imodelclassormsqlite">IModelClassOrmSQlite</a>&lt;U&gt;</code> |
+| **`column`**                          | <code>K</code>                                                                      |
+| **`value`**                           | <code>T[K]</code>                                                                   |
+| **`operator`**                        | <code>'=' \| '&lt;&gt;' \| '&lt;' \| '&gt;' \| '&lt;=' \| '&gt;='</code>            |
 
 **Returns:** <code>this</code>
 
