@@ -19,13 +19,16 @@ export interface IJoinClauseOrmSQlite<T = any, U = any> {
     foreignKey: keyof T;
     primaryKey: keyof U,
     as: keyof T,
-    class: U
+    class: U,
+    returnValues: boolean
 }
 export interface leftJoinClauseOrmSQlite<T = any, U = any> {
     tableName: string;
     foreignKey: keyof T;
     primaryKey: keyof U,
-    as: keyof T, class: U
+    as: keyof T,
+    class: U
+    returnValues: boolean
 }
 
 export interface ITableColumnOrmSQlite {
@@ -86,5 +89,5 @@ export interface IQueryBuildOrmSQlite<T = any> {
     alterColumn(column: IColumnTypeOrmSQlite<T>): string;
     rightJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K): this;
     fullJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K): this;
-    distinct<K extends keyof T>(...columns: K[]): this;
+    distinct<U>(tableName: IModelClassOrmSQlite<U>, colunm: keyof U): this;
 }

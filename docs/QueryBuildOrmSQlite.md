@@ -323,12 +323,13 @@ fullJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K
 ### distinct(...)
 
 ```typescript
-distinct<K extends keyof T>(...columns: K[]) => this
+distinct<U>(tableName: IModelClassOrmSQlite<U>, colunm: keyof U) => this
 ```
 
-| Param         | Type             |
-| ------------- | ---------------- |
-| **`columns`** | <code>K[]</code> |
+| Param           | Type                                                                           |
+| --------------- | ------------------------------------------------------------------------------ |
+| **`tableName`** | <code><a href="#imodelclassormsqlite">IModelClassOrmSQlite</a>&lt;U&gt;</code> |
+| **`colunm`**    | <code>keyof U</code>                                                           |
 
 **Returns:** <code>this</code>
 
