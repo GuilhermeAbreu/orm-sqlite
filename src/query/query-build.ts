@@ -77,56 +77,65 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     return this;
   }
 
-  join<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K): this {
+  join<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K, returnValues?: boolean): this {
     const tableNameStr = this.getClassName(tableName).toLowerCase();
     this.joinClauses.push({
       tableName: tableNameStr,
       foreignKey,
       primaryKey,
       as,
-      class: tableName
+      class: tableName,
+      returnValues: returnValues ?? true
     });
     return this;
   }
 
-  leftJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K): this {
+  leftJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K, returnValues?: boolean): this {
     const tableNameStr = this.getClassName(tableName).toLowerCase();
     this.leftJoinClauses.push({
       tableName: tableNameStr,
       foreignKey,
       primaryKey,
       as,
-      class: tableName
+      class: tableName,
+      returnValues: returnValues ?? true
     });
     return this;
   }
 
-  rightJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K): this {
+  rightJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K, returnValues?: boolean): this {
     const tableNameStr = this.getClassName(tableName).toLowerCase();
     this.rightJoinClauses.push({
       tableName: tableNameStr,
       foreignKey,
       primaryKey,
       as,
-      class: tableName
+      class: tableName,
+      returnValues: returnValues ?? true
     });
     return this;
   }
 
-  fullJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K): this {
+  fullJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K, returnValues?: boolean): this {
     const tableNameStr = this.getClassName(tableName).toLowerCase();
     this.fullJoinClauses.push({
       tableName: tableNameStr,
       foreignKey,
       primaryKey,
       as,
-      class: tableName
+      class: tableName,
+      returnValues: returnValues ?? true
     });
     return this;
   }
 
-  distinct<K extends keyof T>(...columns: K[]): this {
-    this.options.distinct = columns;
+  distinct<U>(tableName: IModelClassOrmSQlite<U>, colunm: keyof U): this {
+
+    if (!this.options.distinct) {
+      this.options.distinct = [];
+    }
+
+    this.options.distinct.push(`${this.getClassName(tableName).toLowerCase()}.${colunm as string}`);
     return this;
   }
 
@@ -150,6 +159,10 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
 
       if (joinSelect) {
         joins.push(`${joinType} JOIN ${joinClause.tableName} ${joinClause.as as string} ON ${this.tableName}.${joinClause.foreignKey as string} = ${joinClause.as as string}.${joinClause.primaryKey as string}`);
+
+        if (joinClause.returnValues === false) {
+          return;
+        }
 
         if (isManyToMany(this.classModel.prototype, joinClause.as as string) || isOneToMany(this.classModel.prototype, joinClause.as as string)) {
           jsonSelects.push(`
