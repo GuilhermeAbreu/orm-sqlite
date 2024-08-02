@@ -53,8 +53,21 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     return this;
   }
 
-  whereJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, column: K, value: T[K], operator: IQueryFilterOrmSQlite<T>['operator'] = '='): this {
-    const tableNameStr = this.getClassName(tableName).toLowerCase();
+  whereJoin<K extends keyof T, U>(tableNameOrColumnTableReference: IModelClassOrmSQlite<U> | K, column: K, value: T[K], operator: IQueryFilterOrmSQlite<T>['operator'] = '='): this {
+    
+    let tableNameStr: string;
+
+    if (typeof tableNameOrColumnTableReference === 'number' || typeof tableNameOrColumnTableReference === 'symbol') {
+      throw `type in ${String(tableNameOrColumnTableReference)} : ${typeof tableNameOrColumnTableReference} not is valid`
+    }
+
+
+    if (typeof tableNameOrColumnTableReference === 'string') {
+      tableNameStr = tableNameOrColumnTableReference;
+    } else {
+      tableNameStr = this.getClassName(tableNameOrColumnTableReference).toLowerCase();
+    }
+    
     const qualifiedColumn = String(`${tableNameStr}.${column.toString()}`) as keyof T; // Conversão correta para string
 
     this.filtersJoin.push({ column: qualifiedColumn, value, operator });
