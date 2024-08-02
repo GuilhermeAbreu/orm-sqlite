@@ -53,6 +53,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     return this;
   }
 
+
   whereJoin<K extends keyof T, U>(tableNameOrColumnTableReference: IModelClassOrmSQlite<U> | K, column: K, value: T[K], operator: IQueryFilterOrmSQlite<T>['operator'] = '='): this {
     
     let tableNameStr: string;
@@ -142,13 +143,19 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     return this;
   }
 
-  distinct<U>(tableName: IModelClassOrmSQlite<U>, colunm: keyof U): this {
+  distinct<K extends keyof T, U>(asOrColumn: K, columnCaseJoin?: keyof U): this {
 
     if (!this.options.distinct) {
       this.options.distinct = [];
     }
 
-    this.options.distinct.push(`${this.getClassName(tableName).toLowerCase()}.${colunm as string}`);
+    if (columnCaseJoin) {
+      this.options.distinct.push(`${asOrColumn as string}.${columnCaseJoin as string}`);
+      return this;
+    }
+
+    this.options.distinct.push(`${this.tableName}.${asOrColumn as string}`);
+
     return this;
   }
 
@@ -191,7 +198,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
           `);
           return;
         }
-        
+
         jsonSelects.push(`
           CASE
             WHEN ${joinClause.as as string}.${getPrimaryKey(joinClassInstance) as string} IS NOT NULL THEN

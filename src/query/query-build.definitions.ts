@@ -89,5 +89,5 @@ export interface IQueryBuildOrmSQlite<T = any> {
     alterColumn(column: IColumnTypeOrmSQlite<T>): string;
     rightJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K): this;
     fullJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K): this;
-    distinct<U>(tableName: IModelClassOrmSQlite<U>, colunm: keyof U): this;
+    distinct<K extends keyof T, U>(asOrColumn: K, columnCaseJoin?: keyof U): this
 }
