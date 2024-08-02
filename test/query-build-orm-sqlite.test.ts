@@ -94,7 +94,7 @@ describe('QueryBuildOrmSQlite', () => {
         queryBuilder
             .leftJoin(Post, 'id', 'userId', 'posts')
             .where('name', 'John Doe')
-            .distinct(User, 'name')
+            .distinct('name')
             .orderBy('name')
             .limit(10)
             .offset(5);

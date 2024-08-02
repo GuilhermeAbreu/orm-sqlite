@@ -53,7 +53,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     return this;
   }
 
-  whereJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, column: K, value: T[K], operator: IQueryFilterOrmSQlite<T>['operator'] = '='): this {
+  whereJoin<U>(tableName: IModelClassOrmSQlite<U>, column: keyof U, value: U[keyof U], operator: IQueryFilterOrmSQlite<T>['operator'] = '='): this {
     const tableNameStr = this.getClassName(tableName).toLowerCase();
     const qualifiedColumn = String(`${tableNameStr}.${column.toString()}`) as keyof T; // Conversão correta para string
 
@@ -129,13 +129,19 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     return this;
   }
 
-  distinct<U>(tableName: IModelClassOrmSQlite<U>, colunm: keyof U): this {
+  distinct<K extends keyof T, U>(asOrColumn: K, columnCaseJoin?: keyof U): this {
 
     if (!this.options.distinct) {
       this.options.distinct = [];
     }
 
-    this.options.distinct.push(`${this.getClassName(tableName).toLowerCase()}.${colunm as string}`);
+    if (columnCaseJoin) {
+      this.options.distinct.push(`${asOrColumn as string}.${columnCaseJoin as string}`);
+      return this;
+    }
+
+    this.options.distinct.push(`${this.tableName}.${asOrColumn as string}`);
+
     return this;
   }
 
@@ -178,7 +184,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
           `);
           return;
         }
-        
+
         jsonSelects.push(`
           CASE
             WHEN ${joinClause.as as string}.${getPrimaryKey(joinClassInstance) as string} IS NOT NULL THEN

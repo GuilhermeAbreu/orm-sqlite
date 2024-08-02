@@ -75,14 +75,14 @@ where<K extends keyof T>(column: K, value: T[K], operator?: "=" | "<>" | "<" | "
 ### whereJoin(...)
 
 ```typescript
-whereJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, column: K, value: T[K], operator?: "=" | "<>" | "<" | ">" | "<=" | ">=" | undefined) => this
+whereJoin<U>(tableName: IModelClassOrmSQlite<U>, column: keyof U, value: U[keyof U], operator?: "=" | "<>" | "<" | ">" | "<=" | ">=" | undefined) => this
 ```
 
 | Param           | Type                                                                           |
 | --------------- | ------------------------------------------------------------------------------ |
 | **`tableName`** | <code><a href="#imodelclassormsqlite">IModelClassOrmSQlite</a>&lt;U&gt;</code> |
-| **`column`**    | <code>K</code>                                                                 |
-| **`value`**     | <code>T[K]</code>                                                              |
+| **`column`**    | <code>keyof U</code>                                                           |
+| **`value`**     | <code>U[keyof U]</code>                                                        |
 | **`operator`**  | <code>'=' \| '&lt;&gt;' \| '&lt;' \| '&gt;' \| '&lt;=' \| '&gt;='</code>       |
 
 **Returns:** <code>this</code>
@@ -323,13 +323,13 @@ fullJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K
 ### distinct(...)
 
 ```typescript
-distinct<U>(tableName: IModelClassOrmSQlite<U>, colunm: keyof U) => this
+distinct<K extends keyof T, U>(asOrColumn: K, columnCaseJoin?: keyof U | undefined) => this
 ```
 
-| Param           | Type                                                                           |
-| --------------- | ------------------------------------------------------------------------------ |
-| **`tableName`** | <code><a href="#imodelclassormsqlite">IModelClassOrmSQlite</a>&lt;U&gt;</code> |
-| **`colunm`**    | <code>keyof U</code>                                                           |
+| Param                | Type                 |
+| -------------------- | -------------------- |
+| **`asOrColumn`**     | <code>K</code>       |
+| **`columnCaseJoin`** | <code>keyof U</code> |
 
 **Returns:** <code>this</code>
 
