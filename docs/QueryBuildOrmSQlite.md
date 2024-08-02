@@ -74,16 +74,15 @@ where<K extends keyof T>(column: K, value: T[K], operator?: "=" | "<>" | "<" | "
 
 ### whereJoin(...)
 
-```typescript
-whereJoin<U>(tableName: IModelClassOrmSQlite<U>, column: keyof U, value: U[keyof U], operator?: "=" | "<>" | "<" | ">" | "<=" | ">=" | undefined) => this
+whereJoin<K extends keyof T, U>(tableNameOrColumnTableReference: IModelClassOrmSQlite<U> | K, column: K, value: T[K], operator: IQueryFilterOrmSQlite<T>['operator']) => this
 ```
 
-| Param           | Type                                                                           |
-| --------------- | ------------------------------------------------------------------------------ |
-| **`tableName`** | <code><a href="#imodelclassormsqlite">IModelClassOrmSQlite</a>&lt;U&gt;</code> |
-| **`column`**    | <code>keyof U</code>                                                           |
-| **`value`**     | <code>U[keyof U]</code>                                                        |
-| **`operator`**  | <code>'=' \| '&lt;&gt;' \| '&lt;' \| '&gt;' \| '&lt;=' \| '&gt;='</code>       |
+| Param                                 | Type                                                                                |
+| ------------------------------------- | ----------------------------------------------------------------------------------- |
+| **`tableNameOrColumnTableReference`** | <code>K \| <a href="#imodelclassormsqlite">IModelClassOrmSQlite</a>&lt;U&gt;</code> |
+| **`column`**                          | <code>K</code>                                                                      |
+| **`value`**                           | <code>T[K]</code>                                                                   |
+| **`operator`**                        | <code>'=' \| '&lt;&gt;' \| '&lt;' \| '&gt;' \| '&lt;=' \| '&gt;='</code>            |
 
 **Returns:** <code>this</code>
 
@@ -322,7 +321,7 @@ fullJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K
 
 ### distinct(...)
 
-```typescript
+
 distinct<K extends keyof T, U>(asOrColumn: K, columnCaseJoin?: keyof U | undefined) => this
 ```
 
@@ -374,7 +373,9 @@ distinct<K extends keyof T, U>(asOrColumn: K, columnCaseJoin?: keyof U | undefin
 
 Make all properties in T optional
 
-<code>{ [P in keyof T]?: T[P]; }</code>
+<code>{
+ [P in keyof T]?: T[P];
+ }</code>
 
 
 #### IColumnTypeOrmSQlite

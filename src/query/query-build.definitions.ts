@@ -73,7 +73,7 @@ export interface IModelClassOrmSQlite<T> {
 export interface IQueryBuildOrmSQlite<T = any> {
     groupBy<K extends keyof T>(...columns: K[]): this;
     where<K extends keyof T>(column: K, value: T[K], operator?: IQueryFilterOrmSQlite<T>['operator']): this;
-    whereJoin<U>(tableName: IModelClassOrmSQlite<U>, column: keyof U, value: U[keyof U], operator?: IQueryFilterOrmSQlite<T>['operator']): this;
+    whereJoin<K extends keyof T, U>(tableNameOrColumnTableReference: IModelClassOrmSQlite<U> | K, column: K, value: T[K], operator: IQueryFilterOrmSQlite<T>['operator']): this;
     limit(limit: number): this;
     offset(offset: number): this;
     orderBy<K extends keyof T>(column: K, order?: IQueryOptionsOrmSQlite['order']): this;
