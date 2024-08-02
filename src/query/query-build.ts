@@ -193,7 +193,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     query += ` FROM ${this.tableName}`;
 
     if (joins.length > 0) {
-      query += ` ${joins.join(', ')}`;
+      query += ` ${joins.join('\n')}`;
     }
 
     if (this.filters.length > 0) {

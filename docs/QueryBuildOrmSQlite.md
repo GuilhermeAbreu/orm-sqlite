@@ -378,6 +378,6 @@ Make all properties in T optional
 
 #### IColumnTypeOrmSQlite
 
-<code>{ [K in keyof T]: { name: K; type: 'INTEGER' | 'TEXT' | 'BOOLEAN' | 'DATE'; primaryKey?: boolean; unique?: boolean; notNull?: boolean; defaultValue?: any; autoIncremente?: boolean; }; }[keyof T]</code>
+<code>{ [K in keyof T]: { name: K; type: 'INTEGER' | 'TEXT' | 'BOOLEAN' | 'DATE'; primaryKey?: boolean; unique?: boolean; notNull?: boolean; defaultValue?: any; autoIncremente?: boolean; }; }[keyof T]</code>
 
 </docgen-api>
