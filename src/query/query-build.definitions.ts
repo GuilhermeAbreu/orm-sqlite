@@ -80,8 +80,8 @@ export interface IQueryBuildOrmSQlite<T = any> {
     join<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K): this;
     leftJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K): this;
     getQuery(): string;
-    insert(values: Partial<T> | Partial<T>[]): string;
-    update(values: Partial<T>): string;
+    insert(values: Partial<T> | Partial<T>[], returnValues?: boolean): string;
+    update(values: Partial<T>, returnValues?: boolean): string;
     delete(): string;
     createTable(columns: IColumnTypeOrmSQlite<T>[]): string;
     addColumn(column: IColumnTypeOrmSQlite<T>): string;
