@@ -7,6 +7,7 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
 
   protected static sqlite: SQLiteConnection;
   private static _DB: SQLiteDBConnection | undefined;
+  private static isModoTransaction: boolean = false;
 
   private static config = {
     database: '',
@@ -181,21 +182,22 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
     }
     console.debug('Starting transaction.');
     await db.beginTransaction();
+    this.isModoTransaction = true;
   }
 
   public static async commitTransaction(): Promise<void> {
     const db = await this.db;
     await db.commitTransaction();
+    this.isModoTransaction = false;
   }
 
   public static async rollbackTransaction(): Promise<void> {
     const db = await this.db;
     await db.rollbackTransaction();
+    this.isModoTransaction = false;
   }
 
-  public static async execute(sql: string): Promise<boolean> {
-
-    
+  public static async execute<T = any>(sql: string): Promise<T[]> {    
     if (this.config.log) {
       console.debug(this.config.database, ' | SQL: ' ,sql);
     }
@@ -205,8 +207,8 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
     }
 
     const db = await this.db;
-    const result = await db.run(sql, undefined, false);
-    return (result.changes?.changes ?? 0) > 0;
+    const result = await db.run(sql, undefined, this.isModoTransaction, 'all');
+    return result.changes?.values ?? [];
   }
 
   public static async query<T = any>(sql: string): Promise<T[]> {
@@ -217,7 +219,7 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
     if (['', undefined, null].includes(sql.trim())) {
       throw 'The sql passed in the parameter is empty';
     }
-    
+
     const db = await this.db;
     const result: any = await db.query(sql);
     return result.values?.map((row: any) => this.parseRow(row)) ?? [];
