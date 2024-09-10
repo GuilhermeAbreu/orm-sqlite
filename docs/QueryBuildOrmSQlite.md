@@ -74,14 +74,15 @@ where<K extends keyof T>(column: K, value: T[K], operator?: "=" | "<>" | "<" | "
 
 ### whereJoin(...)
 
-whereJoin<K extends keyof T, U>(tableNameOrColumnTableReference: IModelClassOrmSQlite<U> | K, column: K, value: T[K], operator: IQueryFilterOrmSQlite<T>['operator']) => this
+```typescript
+whereJoin<K extends keyof T, U>(tableNameOrColumnTableReference: IModelClassOrmSQlite<U> | K, column: keyof U, value: U[keyof U], operator: IQueryFilterOrmSQlite<T>['operator']) => this
 ```
 
 | Param                                 | Type                                                                                |
 | ------------------------------------- | ----------------------------------------------------------------------------------- |
 | **`tableNameOrColumnTableReference`** | <code>K \| <a href="#imodelclassormsqlite">IModelClassOrmSQlite</a>&lt;U&gt;</code> |
-| **`column`**                          | <code>K</code>                                                                      |
-| **`value`**                           | <code>T[K]</code>                                                                   |
+| **`column`**                          | <code>keyof U</code>                                                                |
+| **`value`**                           | <code>U[keyof U]</code>                                                             |
 | **`operator`**                        | <code>'=' \| '&lt;&gt;' \| '&lt;' \| '&gt;' \| '&lt;=' \| '&gt;='</code>            |
 
 **Returns:** <code>this</code>
@@ -185,12 +186,13 @@ getQuery() => string
 ### insert(...)
 
 ```typescript
-insert(values: Partial<T> | Partial<T>[]) => string
+insert(values: Partial<T> | Partial<T>[], returnValues?: boolean | undefined) => string
 ```
 
-| Param        | Type                                                                                              |
-| ------------ | ------------------------------------------------------------------------------------------------- |
-| **`values`** | <code><a href="#partial">Partial</a>&lt;T&gt; \| <a href="#partial">Partial</a>&lt;T&gt;[]</code> |
+| Param              | Type                                                                                              |
+| ------------------ | ------------------------------------------------------------------------------------------------- |
+| **`values`**       | <code><a href="#partial">Partial</a>&lt;T&gt; \| <a href="#partial">Partial</a>&lt;T&gt;[]</code> |
+| **`returnValues`** | <code>boolean</code>                                                                              |
 
 **Returns:** <code>string</code>
 
@@ -200,12 +202,13 @@ insert(values: Partial<T> | Partial<T>[]) => string
 ### update(...)
 
 ```typescript
-update(values: Partial<T>) => string
+update(values: Partial<T>, returnValues?: boolean | undefined) => string
 ```
 
-| Param        | Type                                                 |
-| ------------ | ---------------------------------------------------- |
-| **`values`** | <code><a href="#partial">Partial</a>&lt;T&gt;</code> |
+| Param              | Type                                                 |
+| ------------------ | ---------------------------------------------------- |
+| **`values`**       | <code><a href="#partial">Partial</a>&lt;T&gt;</code> |
+| **`returnValues`** | <code>boolean</code>                                 |
 
 **Returns:** <code>string</code>
 
@@ -321,7 +324,7 @@ fullJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K
 
 ### distinct(...)
 
-
+```typescript
 distinct<K extends keyof T, U>(asOrColumn: K, columnCaseJoin?: keyof U | undefined) => this
 ```
 
@@ -373,9 +376,7 @@ distinct<K extends keyof T, U>(asOrColumn: K, columnCaseJoin?: keyof U | undefin
 
 Make all properties in T optional
 
-<code>{
- [P in keyof T]?: T[P];
- }</code>
+<code>{ [P in keyof T]?: T[P]; }</code>
 
 
 #### IColumnTypeOrmSQlite

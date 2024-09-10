@@ -64,7 +64,7 @@ describe('QueryBuildOrmSQlite', () => {
     it('should generate a correct INSERT query', function () {
         const queryBuilder = new QueryBuildOrmSQlite<User>(User);
         const insertValues = [new User({ name: 'John Doe' }), new User({ name: 'Jane Smith' })];
-        const expectedQuery = "INSERT INTO user (id, name) VALUES (NULL, 'John Doe'), (NULL, 'Jane Smith')";
+        const expectedQuery = "INSERT INTO user (id, name) VALUES (NULL, 'John Doe'), (NULL, 'Jane Smith') RETURNING *";
     ;
 
         const query = queryBuilder.insert(insertValues).replace(/\s{2,}/g, ' '); // Remove espaços extras
@@ -74,7 +74,7 @@ describe('QueryBuildOrmSQlite', () => {
     it('should generate a correct UPDATE query', function () {
         const queryBuilder = new QueryBuildOrmSQlite<User>(User);
         const updateValues = new User({name: 'John Doe Updated'});
-        const expectedQuery = "UPDATE user SET name = 'John Doe Updated' WHERE id = 1";
+        const expectedQuery = "UPDATE user SET name = 'John Doe Updated' WHERE id = 1 RETURNING *";
 
         const query = queryBuilder.where('id', 1).update(updateValues).replace(/\s{2,}/g, ' '); // Remove espaços extras
         expect(query).toBe(expectedQuery);

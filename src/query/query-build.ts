@@ -285,7 +285,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     return isColunaRelacionamento(classModel?.prototype ?? this.classModel.prototype, value);
   }
 
-  insert(values: Partial<T> | Partial<T>[]): string {
+  insert(values: Partial<T> | Partial<T>[], returnValues: boolean = true): string {
     if (!Array.isArray(values)) {
       values = [values];
     }
@@ -305,10 +305,10 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
       return `(${columnValues})`;
     }).join(', ');
 
-    return `INSERT INTO ${this.tableName} (${columns}) VALUES ${rows}`;
+    return `INSERT INTO ${this.tableName} (${columns}) VALUES ${rows} ${returnValues ? 'RETURNING *' : ''}`;
   }
 
-  update(values: Partial<T>): string {
+  update(values: Partial<T>, returnValues: boolean = true): string {
 
     const chavePrimaria = getPrimaryKey(this.classModel.prototype);
 
@@ -326,6 +326,10 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     if (this.filters.length > 0) {
       query += ' WHERE ';
       query += this.filters.map(filter => `${filter.column as string} ${filter.operator} ${this.formatValue(filter.value)}`).join(' AND ');
+    }
+
+    if (returnValues){
+      query += returnValues ? ' RETURNING *' : ''
     }
 
     return query;

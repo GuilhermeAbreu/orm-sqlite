@@ -7,6 +7,7 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
 
   protected static sqlite: SQLiteConnection;
   private static _DB: SQLiteDBConnection | undefined;
+  private static isModoTransaction: boolean = false;
 
   private static config = {
     database: '',
@@ -181,42 +182,55 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
     }
     console.debug('Starting transaction.');
     await db.beginTransaction();
+    this.isModoTransaction = true;
   }
 
   public static async commitTransaction(): Promise<void> {
     const db = await this.db;
     await db.commitTransaction();
+    this.isModoTransaction = false;
   }
 
   public static async rollbackTransaction(): Promise<void> {
     const db = await this.db;
     await db.rollbackTransaction();
+    this.isModoTransaction = false;
   }
 
-  public static async execute(sql: string): Promise<boolean> {
+  public static async execute<T = any>(sql: string): Promise<T[]> {    
     if (this.config.log) {
-      console.debug(this.config.database, sql);
+      console.debug(this.config.database, ' | SQL: ' ,sql);
     }
+
+    if (['', undefined, null].includes(sql.trim())) {
+      throw 'The sql passed in the parameter is empty';
+    }
+
     const db = await this.db;
-    const result = await db.run(sql, undefined, false);
-    return (result.changes?.changes ?? 0) > 0;
+    const result = await db.run(sql, undefined, this.isModoTransaction, 'all');
+    return result.changes?.values ?? [];
   }
 
   public static async query<T = any>(sql: string): Promise<T[]> {
     if (this.config.log) {
-      console.debug(this.config.database, sql);
+      console.debug(this.config.database, ' | SQL: ' ,sql);
     }
+
+    if (['', undefined, null].includes(sql.trim())) {
+      throw 'The sql passed in the parameter is empty';
+    }
+
     const db = await this.db;
     const result: any = await db.query(sql);
     return result.values?.map((row: any) => this.parseRow(row)) ?? [];
   }
 
   public static async getCurrentDBVersion(): Promise<number | undefined> {
-    const result = await this.query<number>(`
+    const result = await this.query<{version: number}>(`
         SELECT version FROM db_version
         ORDER BY id DESC LIMIT 1;
       `);
-    return result[0];
+    return result[0]?.version;
   }
 
   public static async updateDBVersion(newVersion: number): Promise<void> {
@@ -240,11 +254,10 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
     if (currentVersion === undefined) {
       console.debug(this.config.database, 'Initial migration required.');
       await this.runInitialMigrations(migrations);
-    } else {
-      await this.migrateIfNeeded(migrations, currentVersion);
+      return;
     }
-
-    await this.updateDBVersion(migrations[migrations.length - 1].version);
+    
+    await this.migrateIfNeeded(migrations, currentVersion);
   }
 
   private static async initializeDB(): Promise<SQLiteDBConnection> {
@@ -273,6 +286,7 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
         await this.execute(sql);
       }
     }
+    await this.updateDBVersion(migrations[migrations.length - 1].version);
   }
 
   private static async migrateIfNeeded(migrations: IMigrationDatabaseOrmSQLite[], currentVersion: number): Promise<void> {
@@ -282,6 +296,7 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
       for (let version = currentVersion + 1; version <= expectedVersion; version++) {
         await this.migrateToVersion(migrations, version);
       }
+      await this.updateDBVersion(migrations[migrations.length - 1].version);
     } else {
       console.debug(this.config.database, 'No migration needed.');
     }
