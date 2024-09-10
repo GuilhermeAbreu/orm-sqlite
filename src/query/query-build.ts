@@ -329,7 +329,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     }
 
     if (returnValues){
-      query += returnValues ? 'RETURNING *' : ''
+      query += returnValues ? ' RETURNING *' : ''
     }
 
     return query;
