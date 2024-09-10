@@ -194,9 +194,16 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
   }
 
   public static async execute(sql: string): Promise<boolean> {
+
+    
     if (this.config.log) {
-      console.debug(this.config.database, sql);
+      console.debug(this.config.database, ' | SQL: ' ,sql);
     }
+
+    if (['', undefined, null].includes(sql.trim())) {
+      throw 'The sql passed in the parameter is empty';
+    }
+
     const db = await this.db;
     const result = await db.run(sql, undefined, false);
     return (result.changes?.changes ?? 0) > 0;
@@ -204,8 +211,13 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
 
   public static async query<T = any>(sql: string): Promise<T[]> {
     if (this.config.log) {
-      console.debug(this.config.database, sql);
+      console.debug(this.config.database, ' | SQL: ' ,sql);
     }
+
+    if (['', undefined, null].includes(sql.trim())) {
+      throw 'The sql passed in the parameter is empty';
+    }
+    
     const db = await this.db;
     const result: any = await db.query(sql);
     return result.values?.map((row: any) => this.parseRow(row)) ?? [];
