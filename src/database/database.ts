@@ -212,11 +212,11 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
   }
 
   public static async getCurrentDBVersion(): Promise<number | undefined> {
-    const result = await this.query<number>(`
+    const result = await this.query<{version: number}>(`
         SELECT version FROM db_version
         ORDER BY id DESC LIMIT 1;
       `);
-    return result[0];
+    return result[0]?.version;
   }
 
   public static async updateDBVersion(newVersion: number): Promise<void> {
@@ -240,11 +240,10 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
     if (currentVersion === undefined) {
       console.debug(this.config.database, 'Initial migration required.');
       await this.runInitialMigrations(migrations);
-    } else {
-      await this.migrateIfNeeded(migrations, currentVersion);
+      return;
     }
-
-    await this.updateDBVersion(migrations[migrations.length - 1].version);
+    
+    await this.migrateIfNeeded(migrations, currentVersion);
   }
 
   private static async initializeDB(): Promise<SQLiteDBConnection> {
@@ -273,6 +272,7 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
         await this.execute(sql);
       }
     }
+    await this.updateDBVersion(migrations[migrations.length - 1].version);
   }
 
   private static async migrateIfNeeded(migrations: IMigrationDatabaseOrmSQLite[], currentVersion: number): Promise<void> {
@@ -282,6 +282,7 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
       for (let version = currentVersion + 1; version <= expectedVersion; version++) {
         await this.migrateToVersion(migrations, version);
       }
+      await this.updateDBVersion(migrations[migrations.length - 1].version);
     } else {
       console.debug(this.config.database, 'No migration needed.');
     }
