@@ -7,7 +7,6 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
 
   protected static sqlite: SQLiteConnection;
   private static _DB: SQLiteDBConnection | undefined;
-  private static isModoTransaction: boolean = false;
 
   private static config = {
     database: '',
@@ -182,19 +181,16 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
     }
     console.debug('Starting transaction.');
     await db.beginTransaction();
-    this.isModoTransaction = true;
   }
 
   public static async commitTransaction(): Promise<void> {
     const db = await this.db;
     await db.commitTransaction();
-    this.isModoTransaction = false;
   }
 
   public static async rollbackTransaction(): Promise<void> {
     const db = await this.db;
     await db.rollbackTransaction();
-    this.isModoTransaction = false;
   }
 
   public static async execute<T = any>(sql: string): Promise<T[]> {    
@@ -207,7 +203,7 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
     }
 
     const db = await this.db;
-    const result = await db.run(sql, undefined, this.isModoTransaction, 'all');
+    const result = await db.run(sql, undefined, false, 'all');
     return result.changes?.values ?? [];
   }
 
