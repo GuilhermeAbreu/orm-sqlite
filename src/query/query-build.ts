@@ -286,6 +286,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
   }
 
   insert(values: Partial<T> | Partial<T>[], returnValues: boolean = true): string {
+
     if (!Array.isArray(values)) {
       values = [values];
     }
@@ -309,7 +310,6 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
   }
 
   update(values: Partial<T>, returnValues: boolean = true): string {
-
     const chavePrimaria = getPrimaryKey(this.classModel.prototype);
 
     delete values[chavePrimaria as keyof T];
