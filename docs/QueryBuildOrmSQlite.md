@@ -74,9 +74,9 @@ where<K extends keyof T>(column: K, value: T[K], operator?: "=" | "<>" | "<" | "
 
 ### whereJoin(...)
 
-```typescript
+
 whereJoin<K extends keyof T, U>(tableNameOrColumnTableReference: IModelClassOrmSQlite<U> | K, column: keyof U, value: U[keyof U], operator: IQueryFilterOrmSQlite<T>['operator']) => this
-```
+
 
 | Param                                 | Type                                                                                |
 | ------------------------------------- | ----------------------------------------------------------------------------------- |
@@ -324,10 +324,8 @@ fullJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K
 
 ### distinct(...)
 
-```typescript
-distinct<K extends keyof T, U>(asOrColumn: K, columnCaseJoin?: keyof U | undefined) => this
-```
 
+```
 | Param                | Type                 |
 | -------------------- | -------------------- |
 | **`asOrColumn`**     | <code>K</code>       |
@@ -376,7 +374,9 @@ distinct<K extends keyof T, U>(asOrColumn: K, columnCaseJoin?: keyof U | undefin
 
 Make all properties in T optional
 
-<code>{ [P in keyof T]?: T[P]; }</code>
+<code>{
+ [P in keyof T]?: T[P];
+ }</code>
 
 
 #### IColumnTypeOrmSQlite

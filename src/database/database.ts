@@ -1,7 +1,7 @@
 import type { SQLiteConnection, SQLiteDBConnection } from '@capacitor-community/sqlite';
 import { CapacitorSQLite } from '@capacitor-community/sqlite';
-
 import type { IDatabaseConfig, IDatabaseConnectionOrmSQLite, IMigrationDatabaseOrmSQLite, IReturnExecuteQuery } from './database.definitions';
+
 
 export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite {
 
