@@ -108,14 +108,14 @@ rollbackTransaction() => Promise<void>
 ### execute(...)
 
 ```typescript
-execute(sql: string) => Promise<boolean>
+execute<T = any>(sql: string) => Promise<IReturnExecuteQuery<T>>
 ```
 
 | Param     | Type                |
 | --------- | ------------------- |
 | **`sql`** | <code>string</code> |
 
-**Returns:** <code>Promise&lt;boolean&gt;</code>
+**Returns:** <code>Promise&lt;<a href="#ireturnexecutequery">IReturnExecuteQuery</a>&lt;T&gt;&gt;</code>
 
 --------------------
 
@@ -198,6 +198,16 @@ runMigrationsIfNeeded(migrations: IMigrationDatabaseOrmSQLite[]) => Promise<void
 | **`version`**   | <code>number</code>  |
 | **`readonly`**  | <code>boolean</code> |
 | **`log`**       | <code>boolean</code> |
+
+
+#### IReturnExecuteQuery
+
+| Prop                | Type                 |
+| ------------------- | -------------------- |
+| **`changes`**       | <code>number</code>  |
+| **`hasChanged`**    | <code>boolean</code> |
+| **`values`**        | <code>T[]</code>     |
+| **`changedValues`** | <code>T[]</code>     |
 
 
 #### IMigrationDatabaseOrmSQLite
