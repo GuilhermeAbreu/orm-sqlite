@@ -1,7 +1,7 @@
 import type { SQLiteConnection, SQLiteDBConnection } from '@capacitor-community/sqlite';
 import { CapacitorSQLite } from '@capacitor-community/sqlite';
 
-import type { IDatabaseConfig, IDatabaseConnectionOrmSQLite, IMigrationDatabaseOrmSQLite } from './database.definitions';
+import type { IDatabaseConfig, IDatabaseConnectionOrmSQLite, IMigrationDatabaseOrmSQLite, IReturnExecuteQuery } from './database.definitions';
 
 export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite {
 
@@ -82,7 +82,7 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
   rollbackTransaction(): Promise<void> {
     throw new Error('This method is not an instance method, use the static method');
   }
-  execute(sql: string): Promise<boolean> {
+  execute<T = any>(sql: string): Promise<IReturnExecuteQuery<T>> {
     sql;
     throw new Error('This method is not an instance method, use the static method');
   }
@@ -193,7 +193,7 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
     await db.rollbackTransaction();
   }
 
-  public static async execute<T = any>(sql: string): Promise<T[]> {    
+  public static async execute<T = any>(sql: string): Promise<IReturnExecuteQuery<T>> {    
     if (this.config.log) {
       console.debug(this.config.database, ' | SQL: ' ,sql);
     }
@@ -204,7 +204,16 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
 
     const db = await this.db;
     const result = await db.run(sql, undefined, false, 'all');
-    return result.changes?.values ?? [];
+
+    const values = result.changes?.values ?? [];
+    const changes = result.changes?.changes ?? 0
+
+    return {
+      changes: changes,
+      hasChanged: changes > 0,
+      values: values ?? [],
+      changedValues: values.slice(-changes) ?? [],
+    }
   }
 
   public static async query<T = any>(sql: string): Promise<T[]> {

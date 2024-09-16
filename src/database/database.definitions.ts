@@ -8,7 +8,7 @@ export interface IDatabaseConnectionOrmSQLite {
   beginTransaction(): Promise<void>;
   commitTransaction(): Promise<void>;
   rollbackTransaction(): Promise<void>;
-  execute(sql: string): Promise<boolean>;
+  execute<T = any>(sql: string): Promise<IReturnExecuteQuery<T>>;
   query<T = any>(sql: string): Promise<T[]>;
   getCurrentDBVersion(): Promise<number | undefined>;
   updateDBVersion(newVersion: number): Promise<void>;
@@ -26,4 +26,11 @@ export interface IDatabaseConfig {
 export interface IMigrationDatabaseOrmSQLite {
   version: number,
   sql: string[]
+}
+
+export interface IReturnExecuteQuery<T> {
+  changes: number,
+  hasChanged: boolean,
+  values: T[],
+  changedValues: T[]
 }
