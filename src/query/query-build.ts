@@ -12,7 +12,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
   private leftJoinClauses: leftJoinClauseOrmSQlite[];
   private rightJoinClauses: IJoinClauseOrmSQlite[];
   private fullJoinClauses: IJoinClauseOrmSQlite[];
-  private groupByColumns: (keyof T)[];
+  private groupByColumns: string[];
   private classModel: IModelClassOrmSQlite<T>;
 
   constructor(modelClass: IModelClassOrmSQlite<T>) {
@@ -28,9 +28,17 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     this.groupByColumns = [];
   }
 
-  groupBy<K extends keyof T>(...columns: K[]): this {
-    this.groupByColumns.push(...columns);
+
+  groupBy<U>(asOrColumn: keyof T, columnCaseJoin?: keyof U): this {
+    if (columnCaseJoin) {
+      this.groupByColumns.push(`${asOrColumn as string}.${columnCaseJoin as string}`);
+      return this;
+    }
+
+    this.groupByColumns.push(`${this.tableName}.${asOrColumn as string}`);
+
     return this;
+
   }
 
   private getClassName<T>(modelClass: IModelClassOrmSQlite<T>): string {
@@ -256,7 +264,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
 
     if (this.groupByColumns.length > 0) {
       query += ' GROUP BY ';
-      query += this.groupByColumns.map(column => `${this.tableName}.${String(column)}`).join(', ');
+      query += this.groupByColumns.join(', ');
     }
 
     if (this.options.orderBy && this.options.orderBy.length > 0) {
