@@ -74,9 +74,9 @@ where<K extends keyof T>(column: K, value: T[K], operator?: "=" | "<>" | "<" | "
 
 ### whereJoin(...)
 
-
+```typescript
 whereJoin<K extends keyof T, U>(tableNameOrColumnTableReference: IModelClassOrmSQlite<U> | K, column: keyof U, value: U[keyof U], operator: IQueryFilterOrmSQlite<T>['operator']) => this
-
+```
 
 | Param                                 | Type                                                                                |
 | ------------------------------------- | ----------------------------------------------------------------------------------- |
@@ -123,13 +123,14 @@ offset(offset: number) => this
 ### orderBy(...)
 
 ```typescript
-orderBy<K extends keyof T>(column: K, order?: IQueryOptionsOrmSQlite['order']) => this
+orderBy<U>(asOrColumn: keyof T, order: ITypeOrderBySql, columnCaseJoin?: keyof U | undefined) => this
 ```
 
-| Param        | Type                         |
-| ------------ | ---------------------------- |
-| **`column`** | <code>K</code>               |
-| **`order`**  | <code>'ASC' \| 'DESC'</code> |
+| Param                | Type                                                        |
+| -------------------- | ----------------------------------------------------------- |
+| **`asOrColumn`**     | <code>keyof T</code>                                        |
+| **`order`**          | <code><a href="#itypeorderbysql">ITypeOrderBySql</a></code> |
+| **`columnCaseJoin`** | <code>keyof U</code>                                        |
 
 **Returns:** <code>this</code>
 
@@ -324,8 +325,10 @@ fullJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K
 
 ### distinct(...)
 
-
+```typescript
+distinct<K extends keyof T, U>(asOrColumn: K, columnCaseJoin?: keyof U | undefined) => this
 ```
+
 | Param                | Type                 |
 | -------------------- | -------------------- |
 | **`asOrColumn`**     | <code>K</code>       |
@@ -356,27 +359,19 @@ fullJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K
 | **`entityName`** | <code>string</code> |
 
 
-#### IQueryOptionsOrmSQlite
-
-| Prop           | Type                         |
-| -------------- | ---------------------------- |
-| **`limit`**    | <code>number</code>          |
-| **`offset`**   | <code>number</code>          |
-| **`orderBy`**  | <code>string</code>          |
-| **`order`**    | <code>'ASC' \| 'DESC'</code> |
-| **`distinct`** | <code>T[]</code>             |
-
-
 ### Type Aliases
+
+
+#### ITypeOrderBySql
+
+<code>'ASC' | "DESC"</code>
 
 
 #### Partial
 
 Make all properties in T optional
 
-<code>{
- [P in keyof T]?: T[P];
- }</code>
+<code>{ [P in keyof T]?: T[P]; }</code>
 
 
 #### IColumnTypeOrmSQlite

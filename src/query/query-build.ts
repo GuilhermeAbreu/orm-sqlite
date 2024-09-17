@@ -1,6 +1,6 @@
 import { getPrimaryKey, isColumn, isColunaRelacionamento, isManyToMany, isOneToMany } from '../decoratiors/decoratiors.orm';
 
-import type { IColumnTypeOrmSQlite, IJoinClauseOrmSQlite, IModelClassOrmSQlite, IQueryBuildOrmSQlite, IQueryFilterOrmSQlite, IQueryOptionsOrmSQlite, leftJoinClauseOrmSQlite } from './query-build.definitions';
+import type { IColumnTypeOrmSQlite, IJoinClauseOrmSQlite, IModelClassOrmSQlite, IQueryBuildOrmSQlite, IQueryFilterOrmSQlite, IQueryOptionsOrmSQlite, ITypeOrderBySql, leftJoinClauseOrmSQlite } from './query-build.definitions';
 
 export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
 
@@ -85,10 +85,21 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     return this;
   }
 
-  orderBy(column: keyof T, order: IQueryOptionsOrmSQlite['order'] = 'ASC'): this {
-    this.options.orderBy = String(column);
-    this.options.order = order;
+  orderBy<U>(asOrColumn: keyof T, order: ITypeOrderBySql = 'ASC', columnCaseJoin?: keyof U): this {
+
+    if (!this.options.orderBy) {
+      this.options.orderBy = [];
+    }
+
+    if (columnCaseJoin) {
+      this.options.orderBy.push(`${asOrColumn as string}.${columnCaseJoin as string} ${order}`);
+      return this;
+    }
+
+    this.options.orderBy.push(`${this.tableName}.${asOrColumn as string} ${order}`);
+
     return this;
+
   }
 
   join<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K, returnValues?: boolean): this {
@@ -248,8 +259,8 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
       query += this.groupByColumns.map(column => `${this.tableName}.${String(column)}`).join(', ');
     }
 
-    if (this.options.orderBy) {
-      query += ` ORDER BY ${this.options.orderBy} ${this.options.order}`;
+    if (this.options.orderBy && this.options.orderBy.length > 0) {
+      query += ` ORDER BY ${this.options.orderBy.join(', ')}`;
     }
 
     if (this.options.limit !== undefined) {
