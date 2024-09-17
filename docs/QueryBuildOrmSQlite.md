@@ -43,12 +43,13 @@ npx cap sync
 ### groupBy(...)
 
 ```typescript
-groupBy<K extends keyof T>(...columns: K[]) => this
+groupBy<U>(asOrColumn: keyof T, columnCaseJoin?: keyof U | undefined) => this
 ```
 
-| Param         | Type             |
-| ------------- | ---------------- |
-| **`columns`** | <code>K[]</code> |
+| Param                | Type                 |
+| -------------------- | -------------------- |
+| **`asOrColumn`**     | <code>keyof T</code> |
+| **`columnCaseJoin`** | <code>keyof U</code> |
 
 **Returns:** <code>this</code>
 
