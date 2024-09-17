@@ -9,8 +9,7 @@ export interface IQueryFilterOrmSQlite<T> {
 export interface IQueryOptionsOrmSQlite<T = any> {
     limit?: number;
     offset?: number;
-    orderBy?: string;
-    order?: 'ASC' | 'DESC';
+    orderBy?: string[];
     distinct?: T[]
 }
 
@@ -63,6 +62,8 @@ export type IColumnOrmSQlite = {
     autoIncremente?: boolean;
 };
 
+export type ITypeOrderBySql = 'ASC' | "DESC"
+
 
 export interface IModelClassOrmSQlite<T> {
     new(...args: any[]): T;
@@ -76,7 +77,7 @@ export interface IQueryBuildOrmSQlite<T = any> {
     whereJoin<K extends keyof T, U>(tableNameOrColumnTableReference: IModelClassOrmSQlite<U> | K, column: keyof U, value: U[keyof U], operator: IQueryFilterOrmSQlite<T>['operator']): this;
     limit(limit: number): this;
     offset(offset: number): this;
-    orderBy<K extends keyof T>(column: K, order?: IQueryOptionsOrmSQlite['order']): this;
+    orderBy<U>(asOrColumn: keyof T, order: ITypeOrderBySql, columnCaseJoin?: keyof U): this 
     join<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K): this;
     leftJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K): this;
     getQuery(): string;
