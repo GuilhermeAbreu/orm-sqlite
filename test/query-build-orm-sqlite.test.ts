@@ -45,6 +45,13 @@ describe('QueryBuildOrmSQlite', () => {
         expect(query).toBe('SELECT user.* FROM user GROUP BY user.id');
     });
 
+    it('should generate a select query with group by association', () => {
+        const query = queryBuilder.join(Post, 'id', 'userId', 'posts')
+        .groupBy<Post>('posts', 'id')
+        .groupBy('id').getQuery().replace(/\s+/g, ' ');
+        expect(query).toBe("SELECT user.*, CASE WHEN posts.id IS NOT NULL THEN json_group_array( json_object( 'id', posts.id , 'userId', posts.userId , 'title', posts.title ) ) ELSE NULL END AS posts FROM user INNER JOIN post posts ON user.id = posts.userId GROUP BY posts.id, user.id");
+    });
+
     it('should generate a select query with limit', () => {
         const query = queryBuilder.limit(10).getQuery().replace(/\s+/g, ' ');
         expect(query).toBe('SELECT user.* FROM user LIMIT 10');
