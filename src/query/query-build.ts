@@ -286,6 +286,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
           CASE
             WHEN ${joinClause.as as string}.${getPrimaryKey(joinClassInstance) as string} IS NOT NULL THEN
               json_group_array(
+                DISTINCT
                 json_object(
                   ${joinSelect}
                 )
