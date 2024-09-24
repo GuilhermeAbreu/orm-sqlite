@@ -10,6 +10,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
   private options: IQueryOptionsOrmSQlite;
   private joinClauses: IJoinClauseOrmSQlite[];
   private leftJoinClauses: leftJoinClauseOrmSQlite[];
+  private leftJoinOnJoinClauses: leftJoinClauseOrmSQlite[];
   private rightJoinClauses: IJoinClauseOrmSQlite[];
   private fullJoinClauses: IJoinClauseOrmSQlite[];
   private groupByColumns: string[];
@@ -26,6 +27,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     this.rightJoinClauses = [];
     this.fullJoinClauses = [];
     this.groupByColumns = [];
+    this.leftJoinOnJoinClauses = [];
   }
 
 
@@ -123,7 +125,27 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     return this;
   }
 
-  leftJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K, returnValues?: boolean): this {
+  JoiOnJoin<U, J>(tableName: IModelClassOrmSQlite<U>, primaryKey: keyof U, tableJoin: IModelClassOrmSQlite<J>, foreignKey: keyof J, as: keyof U): this {
+    const tableNameStr = this.getClassName(tableName).toLowerCase();
+    const tableJoinStr = this.getClassName(tableJoin).toLowerCase();
+
+    this.leftJoinOnJoinClauses.push(
+      {
+        tableName: tableNameStr,
+        tableJoin: tableJoinStr,
+        foreignKey,
+        primaryKey,
+        as,
+        class: tableName,
+        classJoin: tableJoin,
+        returnValues: true,
+      }
+    )
+
+    return this;
+  }
+
+  leftJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K , primaryKey: keyof U, as: K, returnValues?: boolean): this {
     const tableNameStr = this.getClassName(tableName).toLowerCase();
     this.leftJoinClauses.push({
       tableName: tableNameStr,
@@ -131,7 +153,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
       primaryKey,
       as,
       class: tableName,
-      returnValues: returnValues ?? true
+      returnValues: returnValues ?? true,
     });
     return this;
   }
@@ -187,11 +209,67 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     const processJoinClause = (joinClause: IJoinClauseOrmSQlite, joinType: 'INNER' | 'LEFT' | 'FULL' | 'RIGHT') => {
       const joinClassInstance = new joinClause.class({});
       const joinClassKeys = Object.keys(joinClassInstance) as (keyof any)[];
+
+      const tablesJoinOnJoin = this.leftJoinOnJoinClauses.map(table => table.as)
+      const tablesNamesJoinOnJoin = this.leftJoinOnJoinClauses.map(table => table.tableName)
+
       const joinSelect = joinClassKeys.map(key => {
+
+        if (tablesJoinOnJoin.includes(key) && tablesNamesJoinOnJoin.includes(joinClause.tableName) ) {
+
+          const joinOnJoin = this.leftJoinOnJoinClauses.find(join => join.as === key);
+
+          if (!joinOnJoin) {
+            return;
+          }
+
+          const joinClassOnJoinInstance = new joinOnJoin.class({});
+          const joinClassOnJoinKeys = Object.keys(joinClassOnJoinInstance) as (keyof any)[]
+          const joinSelectOnJoin = joinClassOnJoinKeys.map(keyjOIN => {
+            if (!this.isRelationalField(keyjOIN, joinOnJoin.class)) {
+              return `
+              '${keyjOIN as string}', ${joinOnJoin.as as string}.${keyjOIN as string}`;
+            }
+            return '';
+          }).filter(Boolean).join(', ');
+
+          if (isManyToMany(joinOnJoin.class.prototype, joinOnJoin.as as string) || isOneToMany(joinOnJoin.class.prototype, joinOnJoin.as as string)) {
+            `
+            '${joinOnJoin.as as string}',
+            COALESCE(
+              (
+                  SELECT json_group_array(
+                      DISTINCT json_object(
+                          ${joinSelectOnJoin}
+                      )
+                  )
+                  FROM ${joinOnJoin.tableJoin} as ${joinOnJoin.as as string}
+                  WHERE ${joinClause.as as string}.${joinOnJoin.foreignKey as string} = ${joinOnJoin.as as string}.${joinOnJoin.primaryKey}
+                  group
+              ), 
+              NULL
+            )
+            `
+          }
+
+          return `
+            '${joinOnJoin.as as string}',
+            COALESCE(
+              (
+                  SELECT json_object(
+                    ${joinSelectOnJoin}
+                  )
+                  FROM ${joinOnJoin.tableJoin} as ${joinOnJoin.as as string}
+                  WHERE ${joinClause.as as string}.${joinOnJoin.foreignKey as string} = ${joinOnJoin.as as string}.${joinOnJoin.primaryKey}
+              ), 
+              NULL
+            )
+          `
+        }
+
         if (!this.isRelationalField(key, joinClause.class)) {
           return `
-        '${key as string}', ${joinClause.as as string}.${key as string}
-        `;
+          '${key as string}', ${joinClause.as as string}.${key as string}`;
         }
         return '';
       }).filter(Boolean).join(', ');
