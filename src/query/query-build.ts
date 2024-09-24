@@ -223,7 +223,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
             return;
           }
 
-          const joinClassOnJoinInstance = new joinOnJoin.class({});
+          const joinClassOnJoinInstance = new joinOnJoin.classJoin({});
           const joinClassOnJoinKeys = Object.keys(joinClassOnJoinInstance) as (keyof any)[]
           const joinSelectOnJoin = joinClassOnJoinKeys.map(keyjOIN => {
             if (!this.isRelationalField(keyjOIN, joinOnJoin.class)) {
@@ -240,11 +240,11 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
               (
                   SELECT json_group_array(
                       DISTINCT json_object(
-                          ${joinSelectOnJoin}
+                        ${joinSelectOnJoin}
                       )
                   )
-                  FROM ${joinOnJoin.tableJoin} as ${joinOnJoin.as as string}
-                  WHERE ${joinClause.as as string}.${joinOnJoin.foreignKey as string} = ${joinOnJoin.as as string}.${joinOnJoin.primaryKey}
+                  FROM ${joinOnJoin.tableJoin}
+                  WHERE ${joinOnJoin.tableJoin as string}.${joinOnJoin.foreignKey as string} = ${joinClause.as as string}.${joinOnJoin.primaryKey}
                   group
               ), 
               NULL
@@ -260,7 +260,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
                     ${joinSelectOnJoin}
                   )
                   FROM ${joinOnJoin.tableJoin} as ${joinOnJoin.as as string}
-                  WHERE ${joinClause.as as string}.${joinOnJoin.foreignKey as string} = ${joinOnJoin.as as string}.${joinOnJoin.primaryKey}
+                  WHERE ${joinOnJoin.tableJoin as string}.${joinOnJoin.foreignKey as string} = ${joinClause.as as string}.${joinOnJoin.primaryKey}
               ), 
               NULL
             )
