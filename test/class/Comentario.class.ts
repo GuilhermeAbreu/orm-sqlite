@@ -1,4 +1,4 @@
-import { Column, EntityName, OneToMany } from '../../src/decoratiors/decoratiors.orm';
+import { Column, EntityName } from '../../src/decoratiors/decoratiors.orm';
 
 @EntityName('Comentarios')
 export class Comentario {
@@ -11,7 +11,7 @@ export class Comentario {
     @Column()
     descricao: string = '';
 
-    @OneToMany()
+    @Column()
     postId!: number;
 
     constructor(pUser: Partial<Comentario>) {
