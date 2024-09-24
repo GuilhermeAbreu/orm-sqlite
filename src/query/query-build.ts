@@ -259,7 +259,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
                   SELECT json_object(
                     ${joinSelectOnJoin}
                   )
-                  FROM ${joinOnJoin.tableJoin} as ${joinOnJoin.as as string}
+                  FROM ${joinOnJoin.tableJoin}
                   WHERE ${joinOnJoin.tableJoin as string}.${joinOnJoin.foreignKey as string} = ${joinClause.as as string}.${joinOnJoin.primaryKey}
               ), 
               NULL
