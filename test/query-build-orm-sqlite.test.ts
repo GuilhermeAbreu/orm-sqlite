@@ -1,5 +1,6 @@
 
 import { QueryBuildOrmSQlite } from './../src/query/query-build';
+import { Comentario } from './class/Comentario.class';
 import { Post } from './class/Post.calass';
 import { User } from './class/User.class';
 
@@ -22,22 +23,22 @@ describe('QueryBuildOrmSQlite', () => {
 
     it('should generate a select query with inner join', () => {
         const query = queryBuilder.join(Post, 'id', 'userId', 'posts').getQuery().replace(/\s+/g, ' ');
-        expect(query).toBe("SELECT user.*, CASE WHEN posts.id IS NOT NULL THEN json_group_array( DISTINCT json_object( 'id', posts.id , 'userId', posts.userId , 'title', posts.title ) ) ELSE NULL END AS posts FROM user INNER JOIN post posts ON user.id = posts.userId");
+        expect(query).toBe("SELECT user.*, CASE WHEN posts.id IS NOT NULL THEN json_group_array( DISTINCT json_object( 'id', posts.id, 'userId', posts.userId, 'title', posts.title ) ) ELSE NULL END AS posts FROM user INNER JOIN post posts ON user.id = posts.userId");
     });
 
     it('should generate a select query with left join', () => {
         const query = queryBuilder.leftJoin(Post, 'id', 'userId', 'posts').getQuery().replace(/\s+/g, ' ');
-        expect(query).toBe("SELECT user.*, CASE WHEN posts.id IS NOT NULL THEN json_group_array( DISTINCT json_object( 'id', posts.id , 'userId', posts.userId , 'title', posts.title ) ) ELSE NULL END AS posts FROM user LEFT JOIN post posts ON user.id = posts.userId");
+        expect(query).toBe("SELECT user.*, CASE WHEN posts.id IS NOT NULL THEN json_group_array( DISTINCT json_object( 'id', posts.id, 'userId', posts.userId, 'title', posts.title ) ) ELSE NULL END AS posts FROM user LEFT JOIN post posts ON user.id = posts.userId");
     });
 
     it('should generate a select query with right join', () => {
         const query = queryBuilder.rightJoin(Post, 'id', 'userId', 'posts').getQuery().replace(/\s+/g, ' ');
-        expect(query).toBe("SELECT user.*, CASE WHEN posts.id IS NOT NULL THEN json_group_array( DISTINCT json_object( 'id', posts.id , 'userId', posts.userId , 'title', posts.title ) ) ELSE NULL END AS posts FROM user RIGHT JOIN post posts ON user.id = posts.userId");
+        expect(query).toBe("SELECT user.*, CASE WHEN posts.id IS NOT NULL THEN json_group_array( DISTINCT json_object( 'id', posts.id, 'userId', posts.userId, 'title', posts.title ) ) ELSE NULL END AS posts FROM user RIGHT JOIN post posts ON user.id = posts.userId");
     });
 
     it('should generate a select query with full join', () => {
         const query = queryBuilder.fullJoin(Post, 'id', 'userId', 'posts').getQuery().replace(/\s+/g, ' ');
-        expect(query).toBe("SELECT user.*, CASE WHEN posts.id IS NOT NULL THEN json_group_array( DISTINCT json_object( 'id', posts.id , 'userId', posts.userId , 'title', posts.title ) ) ELSE NULL END AS posts FROM user FULL JOIN post posts ON user.id = posts.userId");
+        expect(query).toBe("SELECT user.*, CASE WHEN posts.id IS NOT NULL THEN json_group_array( DISTINCT json_object( 'id', posts.id, 'userId', posts.userId, 'title', posts.title ) ) ELSE NULL END AS posts FROM user FULL JOIN post posts ON user.id = posts.userId");
     });
 
     it('should generate a select query with group by', () => {
@@ -49,7 +50,7 @@ describe('QueryBuildOrmSQlite', () => {
         const query = queryBuilder.join(Post, 'id', 'userId', 'posts')
         .groupBy<Post>('posts', 'id')
         .groupBy('id').getQuery().replace(/\s+/g, ' ');
-        expect(query).toBe("SELECT user.*, CASE WHEN posts.id IS NOT NULL THEN json_group_array( DISTINCT json_object( 'id', posts.id , 'userId', posts.userId , 'title', posts.title ) ) ELSE NULL END AS posts FROM user INNER JOIN post posts ON user.id = posts.userId GROUP BY posts.id, user.id");
+        expect(query).toBe("SELECT user.*, CASE WHEN posts.id IS NOT NULL THEN json_group_array( DISTINCT json_object( 'id', posts.id, 'userId', posts.userId, 'title', posts.title ) ) ELSE NULL END AS posts FROM user INNER JOIN post posts ON user.id = posts.userId GROUP BY posts.id, user.id");
     });
 
     it('should generate a select query with limit', () => {
@@ -75,7 +76,7 @@ describe('QueryBuildOrmSQlite', () => {
         .orderBy<Post>('posts', 'ASC', 'id')
         .getQuery()
         .replace(/\s+/g, ' ');
-        expect(query).toBe("SELECT user.*, CASE WHEN posts.id IS NOT NULL THEN json_group_array( DISTINCT json_object( 'id', posts.id , 'userId', posts.userId , 'title', posts.title ) ) ELSE NULL END AS posts FROM user LEFT JOIN post posts ON user.id = posts.userId ORDER BY user.id DESC, posts.id ASC");
+        expect(query).toBe("SELECT user.*, CASE WHEN posts.id IS NOT NULL THEN json_group_array( DISTINCT json_object( 'id', posts.id, 'userId', posts.userId, 'title', posts.title ) ) ELSE NULL END AS posts FROM user LEFT JOIN post posts ON user.id = posts.userId ORDER BY user.id DESC, posts.id ASC");
     });
 
     it('should generate a correct INSERT query', function () {
@@ -118,7 +119,24 @@ describe('QueryBuildOrmSQlite', () => {
             .limit(10)
             .offset(5);
 
-        const expectedQuery = "SELECT DISTINCT user.name, CASE WHEN posts.id IS NOT NULL THEN json_group_array( DISTINCT json_object( 'id', posts.id , 'userId', posts.userId , 'title', posts.title ) ) ELSE NULL END AS posts FROM user LEFT JOIN post posts ON user.id = posts.userId WHERE user.name = 'John Doe' ORDER BY user.name ASC LIMIT 10 OFFSET 5";
+        const expectedQuery = "SELECT DISTINCT user.name, CASE WHEN posts.id IS NOT NULL THEN json_group_array( DISTINCT json_object( 'id', posts.id, 'userId', posts.userId, 'title', posts.title ) ) ELSE NULL END AS posts FROM user LEFT JOIN post posts ON user.id = posts.userId WHERE user.name = 'John Doe' ORDER BY user.name ASC LIMIT 10 OFFSET 5";
+
+        const query = queryBuilder.getQuery().replace(/\s{2,}/g, ' '); // Remove espaços extras
+        expect(query).toBe(expectedQuery);
+    });
+
+
+    it('should generate a correct SELECT query with LEFT JOIN on JOIN', function () {
+        const queryBuilder = new QueryBuildOrmSQlite<User>(User);
+
+        queryBuilder
+            .leftJoin(Post, 'id', 'userId', 'posts')
+            .JoiOnJoin(Post, 'id', Comentario, 'postId', 'comentarios')
+            .orderBy('name')
+            .limit(10)
+            .offset(5);
+
+        const expectedQuery = "SELECT user.*, CASE WHEN posts.id IS NOT NULL THEN json_group_array( DISTINCT json_object( 'id', posts.id, 'comentarios', COALESCE( ( SELECT json_object( 'id', comentarios.id, 'userId', comentarios.userId, 'title', comentarios.title ) FROM comentarios as comentarios WHERE posts.postId = comentarios.id ), NULL ) , 'userId', posts.userId, 'title', posts.title ) ) ELSE NULL END AS posts FROM user LEFT JOIN post posts ON user.id = posts.userId ORDER BY user.name ASC LIMIT 10 OFFSET 5";
 
         const query = queryBuilder.getQuery().replace(/\s{2,}/g, ' '); // Remove espaços extras
         expect(query).toBe(expectedQuery);

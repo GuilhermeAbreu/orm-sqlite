@@ -13,21 +13,25 @@ export interface IQueryOptionsOrmSQlite<T = any> {
     distinct?: T[]
 }
 
-export interface IJoinClauseOrmSQlite<T = any, U = any> {
+export interface IJoinClauseOrmSQlite<T = any, U = any, J = any> {
     tableName: string;
     foreignKey: keyof T;
-    primaryKey: keyof U,
-    as: keyof T,
-    class: U,
-    returnValues: boolean
-}
-export interface leftJoinClauseOrmSQlite<T = any, U = any> {
-    tableName: string;
-    foreignKey: keyof T;
-    primaryKey: keyof U,
+    primaryKey: keyof U | J,
     as: keyof T,
     class: U
-    returnValues: boolean
+    returnValues: boolean,
+    tableJoin?: string
+    classJoin?: J
+}
+export interface leftJoinClauseOrmSQlite<T = any, U = any, J = any> {
+    tableName: string;
+    foreignKey: keyof T;
+    primaryKey: keyof U | J,
+    as: keyof T,
+    class: U
+    returnValues: boolean,
+    tableJoin?: string
+    classJoin?: J
 }
 
 export interface ITableColumnOrmSQlite {
@@ -78,6 +82,7 @@ export interface IQueryBuildOrmSQlite<T = any> {
     limit(limit: number): this;
     offset(offset: number): this;
     orderBy<U>(asOrColumn: keyof T, order: ITypeOrderBySql, columnCaseJoin?: keyof U): this 
+    JoiOnJoin<U, J>(tableName: IModelClassOrmSQlite<U>, primaryKey: keyof U, tableJoin: IModelClassOrmSQlite<J>, foreignKey: keyof J, as: keyof U): this
     join<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K): this;
     leftJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K): this;
     getQuery(): string;
