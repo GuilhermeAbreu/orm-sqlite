@@ -228,7 +228,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
           const joinSelectOnJoin = joinClassOnJoinKeys.map(keyjOIN => {
             if (!this.isRelationalField(keyjOIN, joinOnJoin.class)) {
               return `
-              '${keyjOIN as string}', ${joinOnJoin.as as string}.${keyjOIN as string}`;
+              '${keyjOIN as string}', ${joinOnJoin.tableJoin as string}.${keyjOIN as string}`;
             }
             return '';
           }).filter(Boolean).join(', ');
