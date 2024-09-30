@@ -136,7 +136,7 @@ describe('QueryBuildOrmSQlite', () => {
             .limit(10)
             .offset(5);
 
-        const expectedQuery = "SELECT user.*, CASE WHEN posts.id IS NOT NULL THEN json_group_array( DISTINCT json_object( 'id', posts.id, 'comentarios', COALESCE( ( SELECT json_group_array( DISTINCT json_object( 'descricao', comentarios.descricao, 'id', comentarios.id, 'postId', comentarios.postId ) ) FROM comentarios WHERE comentarios.postId = posts.id group ), NULL ) , 'userId', posts.userId, 'title', posts.title ) ) ELSE NULL END AS posts FROM user LEFT JOIN post posts ON user.id = posts.userId ORDER BY user.name ASC LIMIT 10 OFFSET 5";
+        const expectedQuery = "SELECT user.*, CASE WHEN posts.id IS NOT NULL THEN json_group_array( DISTINCT json_object( 'id', posts.id, 'comentarios', COALESCE( ( SELECT json_object( 'descricao', comentarios.descricao, 'id', comentarios.id, 'postId', comentarios.postId ) FROM comentarios WHERE comentarios.postId = posts.id ), NULL ) , 'userId', posts.userId, 'title', posts.title ) ) ELSE NULL END AS posts FROM user LEFT JOIN post posts ON user.id = posts.userId ORDER BY user.name ASC LIMIT 10 OFFSET 5";
 
         const query = queryBuilder.getQuery().replace(/\s{2,}/g, ' '); // Remove espaços extras
         expect(query).toBe(expectedQuery);
