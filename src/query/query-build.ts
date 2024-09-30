@@ -234,7 +234,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
           }).filter(Boolean).join(', ');
 
           if (isManyToMany(joinOnJoin.class.prototype, joinOnJoin.as as string) || isOneToMany(joinOnJoin.class.prototype, joinOnJoin.as as string)) {
-            `
+            return `
             '${joinOnJoin.as as string}',
             COALESCE(
               (
