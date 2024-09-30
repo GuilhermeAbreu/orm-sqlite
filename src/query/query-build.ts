@@ -245,7 +245,6 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
                   )
                   FROM ${joinOnJoin.tableJoin}
                   WHERE ${joinOnJoin.tableJoin as string}.${joinOnJoin.foreignKey as string} = ${joinClause.as as string}.${joinOnJoin.primaryKey}
-                  group
               ), 
               NULL
             )
