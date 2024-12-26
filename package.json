@@ -2,18 +2,12 @@
   "name": "@guilhermeabreudev/capacitor-orm-sqlite",
   "version": "1.11.5",
   "description": "Gerenciado de sql e banco para sqlite no capacitor",
-  "main": "dist/plugin.cjs.js",
+  "main": "dist/capacitor-orm-sqlite.cjs.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
-  "unpkg": "dist/plugin.js",
+  "unpkg": "dist/capacitor-orm-sqlite.js",
   "files": [
-    "android/src/main/",
-    "android/build.gradle",
-    "dist/",
-    "ios/Sources",
-    "ios/Tests",
-    "Package.swift",
-    "CapacitorOrmSqlite.podspec"
+    "dist/"
   ],
   "author": "",
   "license": "MIT",
@@ -26,19 +20,22 @@
   },
   "keywords": [
     "capacitor",
-    "plugin",
-    "native"
+    "mobile",
+    "orm",
+    "sqlite",
+    "sql",
+    "android",
+    "ios",
+    "ionic",
+    "angular"
   ],
   "scripts": {
-    "verify": "npm run verify:ios && npm run verify:android && npm run verify:web",
-    "verify:ios": "xcodebuild -scheme CapacitorOrmSqlite -destination generic/platform=iOS",
-    "verify:android": "cd android && ./gradlew clean build test && cd ..",
+    "verify": "npm run verify:web",
     "verify:web": "npm run build",
-    "lint": "npm run eslint && npm run prettier -- --check && npm run swiftlint -- lint",
-    "fmt": "npm run eslint -- --fix && npm run prettier -- --write && npm run swiftlint -- --fix --format",
+    "lint": "npm run eslint && npm run prettier -- --check",
+    "fmt": "npm run eslint -- --fix && npm run prettier -- --write",
     "eslint": "eslint . --ext ts",
     "prettier": "prettier \"**/*.{css,html,ts,js,java}\"",
-    "swiftlint": "node-swiftlint",
     "docgenDataBaseConenection": "docgen --api IDatabaseConnectionOrmSQLite --output-readme docs/DatabaseConnectionOrmSQLite.md --output-json dist/docs.json",
     "docgenQueryBuild": "docgen --api IQueryBuildOrmSQlite --output-readme docs/QueryBuildOrmSQlite.md --output-json dist/docs.json",
     "docgen": "npm run docgenQueryBuild && npm run docgenDataBaseConenection",
@@ -49,18 +46,15 @@
     "test": "jest"
   },
   "devDependencies": {
-    "@capacitor/android": "^6.0.0",
     "@capacitor/core": "^6.0.0",
     "@capacitor/docgen": "^0.2.2",
-    "@capacitor/ios": "^6.0.0",
     "@ionic/eslint-config": "^0.4.0",
     "@ionic/prettier-config": "^1.0.1",
-    "@ionic/swiftlint-config": "^1.1.2",
     "@types/jest": "^29.5.12",
     "eslint": "^8.57.0",
     "jest": "^29.7.0",
     "prettier": "~2.3.0",
-    "prettier-plugin-java": "~1.0.2",
+    "prettier-capacitor-orm-sqlite-java": "~1.0.2",
     "rimraf": "^3.0.2",
     "rollup": "^2.32.0",
     "sqlite3": "^5.1.7",
@@ -73,17 +67,8 @@
     "@capacitor/core": "^6.0.0"
   },
   "prettier": "@ionic/prettier-config",
-  "swiftlint": "@ionic/swiftlint-config",
   "eslintConfig": {
     "extends": "@ionic/eslint-config/recommended"
-  },
-  "capacitor": {
-    "ios": {
-      "src": "ios"
-    },
-    "android": {
-      "src": "android"
-    }
   },
   "dependencies": {
     "@capacitor-community/sqlite": "^6.0.1"

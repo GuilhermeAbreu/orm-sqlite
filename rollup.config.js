@@ -2,9 +2,9 @@ export default {
   input: 'dist/esm/index.js',
   output: [
     {
-      file: 'dist/plugin.js',
+      file: 'dist/capacitor-orm-sqlite.js',
       format: 'iife',
-      name: 'capacitorExample',
+      name: 'CapacitorOrmSqlite',
       globals: {
         '@capacitor/core': 'capacitorExports',
         '@capacitor-community/sqlite': 'capacitorCommunitySqlite'
@@ -13,7 +13,7 @@ export default {
       inlineDynamicImports: true,
     },
     {
-      file: 'dist/plugin.cjs.js',
+      file: 'dist/capacitor-orm-sqlite.cjs.js',
       format: 'cjs',
       sourcemap: true,
       inlineDynamicImports: true,
