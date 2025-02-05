@@ -12,11 +12,10 @@ Para instalar o pacote `@guilhermeabreudev/capacitor-orm-sqlite`, execute o segu
 
 ```bash
 npm install @guilhermeabreudev/capacitor-orm-sqlite
-npx cap sync && npx cap copy
 ```
 Configuração
-1. Adicionar o Plugin ao Projeto
-Adicione o plugin ao seu projeto Capacitor. Certifique-se de que o plugin está registrado corretamente.
+1. Adicionar o capacitor-orm-sqlite ao Projeto
+Adicione o capacitor-orm-sqlite ao seu projeto Capacitor. Certifique-se de que o capacitor-orm-sqlite está registrado corretamente.
 
 Configurações de SQLite
 https://github.com/capacitor-community/sqlite/blob/master/README.md
@@ -35,7 +34,7 @@ new DatabaseConnectionOrmSQlite(
     {{MostrarSQlLog: boolean}}
 )
 ```
-o plugin ficará responsável por gerenciar todo a parte de conexão, com isso não se preocupe em abrir ou fechar uma nova conexão.
+o capacitor-orm-sqlite ficará responsável por gerenciar todo a parte de conexão, com isso não se preocupe em abrir ou fechar uma nova conexão.
 
 exemplo básico de usabilidade.
 
@@ -143,7 +142,7 @@ class ControladorClienteRepositorio  {
 
 ```
 
-Lembrando que a tipagem e dinâmica logo, ao inserir a class o plugin se encarrega de ler todas as propriedade e com isso retornar tudo sem precisar ficar tentando lembrar o que está na class.
+Lembrando que a tipagem e dinâmica logo, ao inserir a class o capacitor-orm-sqlite se encarrega de ler todas as propriedade e com isso retornar tudo sem precisar ficar tentando lembrar o que está na class.
 
 Também e possível realizar migrações do banco com o tipo IMigrationDatabaseOrmSQLite
 

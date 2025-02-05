@@ -370,10 +370,11 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
       return `${value}`;
     } else if (value === null || value === undefined) {
       return 'NULL';
+    } else if (typeof value === 'object') {
+      return `'${JSON.stringify(value)}'`;
     }
     return `'${value}'`;
   }
-
 
   private isRelationalField<U = T>(value: any, classModel?: IModelClassOrmSQlite<U>): boolean {
     if (value instanceof Date) {
