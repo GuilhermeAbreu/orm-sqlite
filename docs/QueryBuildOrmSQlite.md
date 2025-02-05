@@ -392,7 +392,9 @@ distinct<K extends keyof T, U>(asOrColumn: K, columnCaseJoin?: keyof U | undefin
 
 Make all properties in T optional
 
-<code>{ [P in keyof T]?: T[P]; }</code>
+<code>{
+ [P in keyof T]?: T[P];
+ }</code>
 
 
 #### IColumnTypeOrmSQlite
