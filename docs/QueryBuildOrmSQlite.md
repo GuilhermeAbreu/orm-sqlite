@@ -19,6 +19,7 @@ npx cap sync
 * [`limit(...)`](#limit)
 * [`offset(...)`](#offset)
 * [`orderBy(...)`](#orderby)
+* [`JoiOnJoin(...)`](#joionjoin)
 * [`join(...)`](#join)
 * [`leftJoin(...)`](#leftjoin)
 * [`getQuery()`](#getquery)
@@ -43,12 +44,13 @@ npx cap sync
 ### groupBy(...)
 
 ```typescript
-groupBy<K extends keyof T>(...columns: K[]) => this
+groupBy<U>(asOrColumn: keyof T, columnCaseJoin?: keyof U | undefined) => this
 ```
 
-| Param         | Type             |
-| ------------- | ---------------- |
-| **`columns`** | <code>K[]</code> |
+| Param                | Type                 |
+| -------------------- | -------------------- |
+| **`asOrColumn`**     | <code>keyof T</code> |
+| **`columnCaseJoin`** | <code>keyof U</code> |
 
 **Returns:** <code>this</code>
 
@@ -131,6 +133,25 @@ orderBy<U>(asOrColumn: keyof T, order: ITypeOrderBySql, columnCaseJoin?: keyof U
 | **`asOrColumn`**     | <code>keyof T</code>                                        |
 | **`order`**          | <code><a href="#itypeorderbysql">ITypeOrderBySql</a></code> |
 | **`columnCaseJoin`** | <code>keyof U</code>                                        |
+
+**Returns:** <code>this</code>
+
+--------------------
+
+
+### JoiOnJoin(...)
+
+```typescript
+JoiOnJoin<U, J>(tableName: IModelClassOrmSQlite<U>, primaryKey: keyof U, tableJoin: IModelClassOrmSQlite<J>, foreignKey: keyof J, as: keyof U) => this
+```
+
+| Param            | Type                                                                           |
+| ---------------- | ------------------------------------------------------------------------------ |
+| **`tableName`**  | <code><a href="#imodelclassormsqlite">IModelClassOrmSQlite</a>&lt;U&gt;</code> |
+| **`primaryKey`** | <code>keyof U</code>                                                           |
+| **`tableJoin`**  | <code><a href="#imodelclassormsqlite">IModelClassOrmSQlite</a>&lt;J&gt;</code> |
+| **`foreignKey`** | <code>keyof J</code>                                                           |
+| **`as`**         | <code>keyof U</code>                                                           |
 
 **Returns:** <code>this</code>
 
@@ -371,7 +392,9 @@ distinct<K extends keyof T, U>(asOrColumn: K, columnCaseJoin?: keyof U | undefin
 
 Make all properties in T optional
 
-<code>{ [P in keyof T]?: T[P]; }</code>
+<code>{
+ [P in keyof T]?: T[P];
+ }</code>
 
 
 #### IColumnTypeOrmSQlite

@@ -13,21 +13,25 @@ export interface IQueryOptionsOrmSQlite<T = any> {
     distinct?: T[]
 }
 
-export interface IJoinClauseOrmSQlite<T = any, U = any> {
+export interface IJoinClauseOrmSQlite<T = any, U = any, J = any> {
     tableName: string;
     foreignKey: keyof T;
-    primaryKey: keyof U,
-    as: keyof T,
-    class: U,
-    returnValues: boolean
-}
-export interface leftJoinClauseOrmSQlite<T = any, U = any> {
-    tableName: string;
-    foreignKey: keyof T;
-    primaryKey: keyof U,
+    primaryKey: keyof U | J,
     as: keyof T,
     class: U
-    returnValues: boolean
+    returnValues: boolean,
+    tableJoin?: string
+    classJoin?: J
+}
+export interface leftJoinClauseOrmSQlite<T = any, U = any, J = any> {
+    tableName: string;
+    foreignKey: keyof T;
+    primaryKey: keyof U | J,
+    as: keyof T,
+    class: U
+    returnValues: boolean,
+    tableJoin?: string
+    classJoin?: J
 }
 
 export interface ITableColumnOrmSQlite {
@@ -72,12 +76,13 @@ export interface IModelClassOrmSQlite<T> {
 
 
 export interface IQueryBuildOrmSQlite<T = any> {
-    groupBy<K extends keyof T>(...columns: K[]): this;
+    groupBy<U>(asOrColumn: keyof T, columnCaseJoin?: keyof U): this ;
     where<K extends keyof T>(column: K, value: T[K], operator?: IQueryFilterOrmSQlite<T>['operator']): this;
     whereJoin<K extends keyof T, U>(tableNameOrColumnTableReference: IModelClassOrmSQlite<U> | K, column: keyof U, value: U[keyof U], operator: IQueryFilterOrmSQlite<T>['operator']): this;
     limit(limit: number): this;
     offset(offset: number): this;
     orderBy<U>(asOrColumn: keyof T, order: ITypeOrderBySql, columnCaseJoin?: keyof U): this 
+    JoiOnJoin<U, J>(tableName: IModelClassOrmSQlite<U>, primaryKey: keyof U, tableJoin: IModelClassOrmSQlite<J>, foreignKey: keyof J, as: keyof U): this
     join<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K): this;
     leftJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K): this;
     getQuery(): string;
