@@ -3,9 +3,9 @@ import sqlite3 from 'sqlite3';
 
 
 import { QueryBuildOrmSQlite } from './../src/query/query-build';
-import { Post } from './class/Post.calass';
+import { LocalStorage } from './class/LocalStorage.class';
+import { Post } from './class/Post.class';
 import { User } from './class/User.class';
-
 
 
 // Configura o banco de dados SQLite em memória para testes
@@ -15,62 +15,109 @@ beforeAll((done) => {
     // Cria as tabelas no banco de dados de teste
     db.serialize(() => {
         db.run(
-            new QueryBuildOrmSQlite(User)
+            new QueryBuildOrmSQlite(LocalStorage)
                 .createTable(
                     [
                         {
                             name: 'id',
                             type: 'INTEGER',
-                            primaryKey: true,
-                            notNull: true,
                             autoIncremente: true,
+                            primaryKey: true,
                         },
                         {
-                            name: 'name',
+                            name: 'key',
                             type: 'TEXT',
-                            notNull: true
+                            notNull: true,
+                            unique: true,
+                        },
+                        {
+                            name: 'value',
+                            type: 'TEXT',
+                            notNull: true,
                         }
                     ]
-                ), (err) => {
-                    if (err) {
-                        return done(err);
-                    }
+                )
+        ),
+            db.run(
+                new QueryBuildOrmSQlite(User)
+                    .createTable(
+                        [
+                            {
+                                name: 'id',
+                                type: 'INTEGER',
+                                primaryKey: true,
+                                notNull: true,
+                                autoIncremente: true,
+                            },
+                            {
+                                name: 'name',
+                                type: 'TEXT',
+                                notNull: true
+                            }
+                        ]
+                    ), (err) => {
+                        if (err) {
+                            return done(err);
+                        }
 
-                    db.run(
-                        new QueryBuildOrmSQlite(Post)
-                            .createTable(
-                                [
-                                    {
-                                        name: 'id',
-                                        type: 'INTEGER',
-                                        primaryKey: true,
-                                        notNull: true,
-                                        autoIncremente: true,
-                                    },
-                                    {
-                                        name: 'title',
-                                        type: 'TEXT',
-                                        notNull: true,
-                                    },
-                                    {
-                                        name: 'userId',
-                                        notNull: true,
-                                        type: 'INTEGER',
-                                    }
-                                ]
-                            ), done
-                    );
-                }
-        );
+                        db.run(
+                            new QueryBuildOrmSQlite(Post)
+                                .createTable(
+                                    [
+                                        {
+                                            name: 'id',
+                                            type: 'INTEGER',
+                                            primaryKey: true,
+                                            notNull: true,
+                                            autoIncremente: true,
+                                        },
+                                        {
+                                            name: 'title',
+                                            type: 'TEXT',
+                                            notNull: true,
+                                        },
+                                        {
+                                            name: 'userId',
+                                            notNull: true,
+                                            type: 'INTEGER',
+                                        }
+                                    ]
+                                ), done
+                        );
+                    }
+            );
     });
 });
 
 afterEach((done) => {
-    // Limpa os dados após cada teste
     db.run(new QueryBuildOrmSQlite(User).delete(), () => {
         db.run(new QueryBuildOrmSQlite(Post).delete(), done);
     });
 });
+
+test('should insert data into the database', (done) => {
+    const queryBuilder = new QueryBuildOrmSQlite<LocalStorage>(LocalStorage);
+    const insertValues = [new LocalStorage({ key: 'key-teste-1', value: String({ valor: 'sim' }) })];
+    const query = queryBuilder.insert(insertValues);
+
+    db.run(query, (err) => {
+        if (err) {
+            return done(err);
+        }
+
+        db.all(new QueryBuildOrmSQlite(LocalStorage).getQuery(), (err, rows: any) => {
+            if (err) {
+                return done(err);
+            }
+
+            expect(rows).toHaveLength(1);
+            expect(rows[0].key).toBe('key-teste-1');
+            expect(rows[0].value).toBe(String({ valor: 'sim' }));
+            done();
+        });
+    });
+});
+
 
 test('should insert data into the database', (done) => {
     const queryBuilder = new QueryBuildOrmSQlite<User>(User);
@@ -98,13 +145,13 @@ test('should insert data into the database', (done) => {
 test('should update data in the database', (done) => {
     const queryBuilder = new QueryBuildOrmSQlite<User>(User);
     const insertQuery = queryBuilder.insert([new User({ name: 'John Doe' })]);
-    
+
     db.run(insertQuery, function (err) {
         if (err) {
             return done(err);
         }
 
-        const updateQuery =  new QueryBuildOrmSQlite(User).where('id', this.lastID).update(new User({ name: 'John Doe Updated' }));
+        const updateQuery = new QueryBuildOrmSQlite(User).where('id', this.lastID).update(new User({ name: 'John Doe Updated' }));
         db.run(updateQuery, (err) => {
             if (err) {
                 return done(err);
@@ -131,7 +178,7 @@ test('should delete data from the database', (done) => {
             return done(err);
         }
 
-        const deleteQuery =  new QueryBuildOrmSQlite(User).where('id', this.lastID).delete();
+        const deleteQuery = new QueryBuildOrmSQlite(User).where('id', this.lastID).delete();
         db.run(deleteQuery, (err) => {
             if (err) {
                 return done(err);
@@ -151,7 +198,7 @@ test('should delete data from the database', (done) => {
 
 test('should select data with LEFT JOIN from the database', (done) => {
     const insertUserQuery = new QueryBuildOrmSQlite<User>(User).insert([new User({ name: 'John Doe' })]);
-    
+
     db.serialize(() => {
         db.run(insertUserQuery, function (err) {
             if (err) {

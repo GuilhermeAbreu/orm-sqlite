@@ -1,7 +1,8 @@
 
 import { QueryBuildOrmSQlite } from './../src/query/query-build';
 import { Comentario } from './class/Comentario.class';
-import { Post } from './class/Post.calass';
+import { LocalStorage } from './class/LocalStorage.class';
+import { Post } from './class/Post.class';
 import { User } from './class/User.class';
 
 describe('QueryBuildOrmSQlite', () => {
@@ -138,7 +139,34 @@ describe('QueryBuildOrmSQlite', () => {
 
         const expectedQuery = "SELECT user.*, CASE WHEN posts.id IS NOT NULL THEN json_group_array( DISTINCT json_object( 'id', posts.id, 'comentarios', COALESCE( ( SELECT json_group_array( DISTINCT json_object( 'descricao', comentarios.descricao, 'id', comentarios.id, 'postId', comentarios.postId ) ) FROM comentarios WHERE comentarios.postId = posts.id ), NULL ) , 'userId', posts.userId, 'title', posts.title ) ) ELSE NULL END AS posts FROM user LEFT JOIN post posts ON user.id = posts.userId ORDER BY user.name ASC LIMIT 10 OFFSET 5";
 
+
         const query = queryBuilder.getQuery().replace(/\s{2,}/g, ' '); // Remove espaços extras
+        expect(query).toBe(expectedQuery);
+    });
+
+
+    it('should generate a correct SELECT query with LEFT JOIN on JOIN', function () {
+        const queryBuilder = new QueryBuildOrmSQlite<User>(User);
+
+        queryBuilder
+            .leftJoin(Post, 'id', 'userId', 'posts')
+            .JoiOnJoin(Post, 'id', Comentario, 'postId', 'comentarios')
+            .orderBy('name')
+            .limit(10)
+            .offset(5);
+
+        const expectedQuery = "SELECT user.*, CASE WHEN posts.id IS NOT NULL THEN json_group_array( DISTINCT json_object( 'id', posts.id, 'comentarios', COALESCE( ( SELECT json_group_array( DISTINCT json_object( 'descricao', comentarios.descricao, 'id', comentarios.id, 'postId', comentarios.postId ) ) FROM comentarios WHERE comentarios.postId = posts.id ), NULL ) , 'userId', posts.userId, 'title', posts.title ) ) ELSE NULL END AS posts FROM user LEFT JOIN post posts ON user.id = posts.userId ORDER BY user.name ASC LIMIT 10 OFFSET 5";
+
+        const query = queryBuilder.getQuery().replace(/\s{2,}/g, ' '); // Remove espaços extras
+        expect(query).toBe(expectedQuery);
+    });
+
+    it('should generate a correct insert into object', function () {
+        const queryBuilder = new QueryBuildOrmSQlite<LocalStorage>(LocalStorage);
+
+        const expectedQuery = "INSERT INTO local_storage (key, value) VALUES ('teste', '{\"text\":\"olá\"}') RETURNING *";
+
+        const query = queryBuilder.insert({key: 'teste', value: JSON.stringify({text: 'olá'})}).replace(/\s{2,}/g, ' '); // Remove espaços extras
         expect(query).toBe(expectedQuery);
     });
 

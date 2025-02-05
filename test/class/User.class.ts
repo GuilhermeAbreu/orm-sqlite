@@ -1,7 +1,7 @@
 
 import { Column, EntityName, OneToMany } from '../../src/decoratiors/decoratiors.orm';
 
-import type { Post } from './Post.calass';
+import type { Post } from './Post.class';
 
 @EntityName('User')
 export class User {
