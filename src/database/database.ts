@@ -1,7 +1,7 @@
 import { CapacitorSQLite, SQLiteConnection } from '@capacitor-community/sqlite';
 
 import type { SQLiteDBConnection } from '@capacitor-community/sqlite';
-import type { IDatabaseConfig, IDatabaseConnectionOrmSQLite, IMigrationDatabaseOrmSQLite } from './database.definitions';
+import type { IDatabaseConfig, IDatabaseConnectionOrmSQLite, IMigrationDatabaseOrmSQLite, IReturnExecuteQuery } from './database.definitions';
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; 
@@ -131,7 +131,7 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
   rollbackTransaction(): Promise<void> {
     throw new Error('This method is not an instance method, use the static method');
   }
-  execute(sql: string): Promise<boolean> {
+  execute(sql: string): Promise<IReturnExecuteQuery<any>> {
     sql;
     throw new Error('This method is not an instance method, use the static method');
   }
