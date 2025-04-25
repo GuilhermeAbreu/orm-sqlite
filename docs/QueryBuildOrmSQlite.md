@@ -371,6 +371,8 @@ distinct<K extends keyof T, U>(asOrColumn: K, columnCaseJoin?: keyof U | undefin
 | **`value`**    | <code>any</code>                                                         |
 | **`operator`** | <code>'=' \| '&lt;&gt;' \| '&lt;' \| '&gt;' \| '&lt;=' \| '&gt;='</code> |
 | **`isHaving`** | <code>boolean</code>                                                     |
+| **`type`**     | <code>'AND' \| 'OR'</code>                                               |
+| **`isIn`**     | <code>boolean</code>                                                     |
 
 
 #### IModelClassOrmSQlite
