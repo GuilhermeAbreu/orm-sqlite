@@ -142,6 +142,97 @@ test('should insert data into the database', (done) => {
     });
 });
 
+test('should query data with whereIn', (done) => {
+    const queryBuilder = new QueryBuildOrmSQlite<User>(User);
+    const insertValues = [
+        new User({ name: 'John' }),
+        new User({ name: 'Jane' }),
+        new User({ name: 'Bob' })
+    ];
+    const insertQuery = queryBuilder.insert(insertValues);
+
+    db.run(insertQuery, function(err) {
+        if (err) return done(err);
+        
+        const ultimoId = this.lastID;
+        const ultimoId2 = this.lastID - 1;
+
+
+        const ids = [ultimoId, ultimoId2];
+        const whereInQuery = new QueryBuildOrmSQlite(User)
+            .whereIn('id', ids)
+            .getQuery();
+
+            db.all(whereInQuery, (err, rows: any) => {
+                if (err) return done(err);
+
+            expect(rows).toHaveLength(2);
+            expect(rows[0].name).toBe('Jane');
+            expect(rows[1].name).toBe('Bob');
+            return done();
+        });
+    });
+});
+
+test('should query data with orIn', (done) => {
+    const queryBuilder = new QueryBuildOrmSQlite<User>(User);
+    const insertValues = [
+        new User({ name: 'John Doe' }),
+        new User({ name: 'John' }),
+        new User({ name: 'Jane' }),
+        new User({ name: 'Bob' }),
+    ];
+    const insertQuery = queryBuilder.insert(insertValues);
+
+    db.run(insertQuery, function(err) {
+        if (err) return done(err);
+
+        const ids = [this.lastID, this.lastID - 1, this.lastID - 2];
+        const orInQuery = new QueryBuildOrmSQlite(User)
+            .orIn('id', ids)
+            .getQuery();
+
+            db.all(orInQuery, (err, rows: any) => {
+                if (err) return done(err);
+
+            expect(rows).toHaveLength(3);
+            expect(rows.map((r: any) => r.name)).toContain('John');
+            expect(rows.map((r: any) => r.name)).toContain('Jane');
+            expect(rows.map((r: any) => r.name)).toContain('Bob');
+            return done();
+        });
+    });
+});
+
+test('should query data with or', (done) => {
+    const queryBuilder = new QueryBuildOrmSQlite<User>(User);
+    const insertValues = [
+        new User({ name: 'John' }),
+        new User({ name: 'Jane' }),
+        new User({ name: 'Bob' })
+    ];
+    const insertQuery = queryBuilder.insert(insertValues);
+
+    db.run(insertQuery, function(err) {
+        if (err) return done(err);
+
+        const orQuery = new QueryBuildOrmSQlite(User)
+            .where('name', 'John')
+            .or('name', 'Jane')
+            .getQuery();
+
+        db.all(orQuery, (err, rows: any) => {
+            if (err) return done(err);
+
+            expect(rows).toHaveLength(2);
+            expect(rows[0].name).toBe('John');
+            expect(rows[1].name).toBe('Jane');
+            return done();
+        });
+    });
+});
+
+
 test('should update data in the database', (done) => {
     const queryBuilder = new QueryBuildOrmSQlite<User>(User);
     const insertQuery = queryBuilder.insert([new User({ name: 'John Doe' })]);

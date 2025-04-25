@@ -59,7 +59,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
       throw new Error(`Column '${column as string}' does not exist or is not decorated as @Column.`);
     }
 
-    this.filters.push({ column, value, operator });
+    this.filters.push({ column, value, operator, type: 'AND' });
     return this;
   }
 
@@ -81,7 +81,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     
     const qualifiedColumn = String(`${tableNameStr}.${column.toString()}`) as keyof T; // Conversão correta para string
 
-    this.filtersJoin.push({ column: qualifiedColumn, value, operator });
+    this.filtersJoin.push({ column: qualifiedColumn, value, operator, type: 'AND' });
     return this;
   }
 
@@ -328,7 +328,15 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
 
     if (this.filters.length > 0) {
       query += ' WHERE ';
-      query += this.filters.map(filter => `${this.tableName}.${filter.column as string} ${filter.operator} ${this.formatValue(filter.value)}`).join(' AND ');
+      query += this.filters.map((filter, index) => {
+        let condition;
+        if (filter.isIn) {
+          condition = `${this.tableName}.${filter.column as string} IN ${filter.value}`;
+        } else {
+          condition = `${this.tableName}.${filter.column as string} ${filter.operator} ${this.formatValue(filter.value)}`;
+        }
+        return index > 0 ? ` ${filter.type} ${condition}` : condition;
+      }).join('');
     }
 
     if (this.filtersJoin.length > 0) {
@@ -337,7 +345,10 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
       } else {
         query += ' AND ';
       }
-      query += this.filtersJoin.map(filter => `${filter.column as string} ${filter.operator} ${this.formatValue(filter.value)}`).join(' AND ');
+      query += this.filtersJoin.map((filter, index) => {
+        const condition = `${filter.column as string} ${filter.operator} ${this.formatValue(filter.value)}`;
+        return index > 0 ? ` ${filter.type} ${condition}` : condition;
+      }).join('');
     }
 
     if (this.groupByColumns.length > 0) {
@@ -383,7 +394,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     return isColunaRelacionamento(classModel?.prototype ?? this.classModel.prototype, value);
   }
 
-  insert(values: Partial<T> | Partial<T>[], returnValues: boolean = true): string {
+  insert(values: Partial<T> | Partial<T>[], returnValues = true): string {
 
     if (!Array.isArray(values)) {
       values = [values];
@@ -407,7 +418,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     return `INSERT INTO ${this.tableName} (${columns}) VALUES ${rows} ${returnValues ? 'RETURNING *' : ''}`;
   }
 
-  update(values: Partial<T>, returnValues: boolean = true): string {
+  update(values: Partial<T>, returnValues = true): string {
     const chavePrimaria = getPrimaryKey(this.classModel.prototype);
 
     delete values[chavePrimaria as keyof T];
@@ -497,6 +508,36 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
 
   dropColumn(columnName: keyof T): string {
     return `ALTER TABLE ${this.tableName} DROP COLUMN ${String(columnName)}`;
+  }
+
+  or<K extends keyof T>(column: K & (string extends K ? never : keyof T), value: T[K], operator: IQueryFilterOrmSQlite<T>['operator'] = '='): this {
+    
+    if (!isColumn(this.classModel.prototype, column as string)) {
+      throw new Error(`Column '${column as string}' does not exist or is not decorated as @Column.`);
+    }
+
+    this.filters.push({ column, value, operator, type: 'OR' });
+    return this;
+  }
+
+  orIn<K extends keyof T>(column: K & (string extends K ? never : keyof T), values: T[K][]): this {
+    if (!isColumn(this.classModel.prototype, column as string)) {
+      throw new Error(`Column '${column as string}' does not exist or is not decorated as @Column.`);
+    }
+
+    const formattedValues = values.map(value => this.formatValue(value)).join(',');
+    this.filters.push({ column, value: `(${formattedValues})`, operator: '=' as any, type: 'OR', isIn: true });
+    return this;
+  }
+
+  whereIn<K extends keyof T>(column: K & (string extends K ? never : keyof T), values: T[K][]): this {
+    if (!isColumn(this.classModel.prototype, column as string)) {
+      throw new Error(`Column '${column as string}' does not exist or is not decorated as @Column.`);
+    }
+
+    const formattedValues = values.map(value => this.formatValue(value)).join(',');
+    this.filters.push({ column, value: `(${formattedValues})`, operator: '=' as any, type: 'AND', isIn: true });
+    return this;
   }
 
   alterColumn(column: IColumnTypeOrmSQlite<T>): string {
