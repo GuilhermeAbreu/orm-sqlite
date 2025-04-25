@@ -4,6 +4,8 @@ export interface IQueryFilterOrmSQlite<T> {
     value: any;
     operator: '=' | '<>' | '<' | '>' | '<=' | '>=';
     isHaving?: boolean;
+    type: 'AND' | 'OR';
+    isIn?: boolean;
 }
 
 export interface IQueryOptionsOrmSQlite<T = any> {
