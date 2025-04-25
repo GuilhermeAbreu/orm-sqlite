@@ -170,4 +170,39 @@ describe('QueryBuildOrmSQlite', () => {
         expect(query).toBe(expectedQuery);
     });
 
+    it('deve gerar uma consulta SELECT com whereIn', () => {
+        const queryBuilder = new QueryBuildOrmSQlite<User>(User);
+        
+        const query = queryBuilder
+            .whereIn('id', [1, 2, 3])
+            .getQuery()
+            .replace(/\s+/g, ' ');
+            
+        expect(query).toBe('SELECT user.* FROM user WHERE user.id IN (1,2,3)');
+    });
+
+    it('deve gerar uma consulta SELECT com orIn', () => {
+        const queryBuilder = new QueryBuildOrmSQlite<User>(User);
+        
+        const query = queryBuilder
+            .where('name', 'João')
+            .orIn('id', [1, 2, 3])
+            .getQuery()
+            .replace(/\s+/g, ' ');
+            
+        expect(query).toBe("SELECT user.* FROM user WHERE user.name = 'João' OR user.id IN (1,2,3)");
+    });
+
+    it('deve gerar uma consulta SELECT com or', () => {
+        const queryBuilder = new QueryBuildOrmSQlite<User>(User);
+        
+        const query = queryBuilder
+            .where('name', 'João')
+            .or('id', 1)
+            .getQuery()
+            .replace(/\s+/g, ' ');
+            
+        expect(query).toBe("SELECT user.* FROM user WHERE user.name = 'João' OR user.id = 1");
+    });
+
 });
