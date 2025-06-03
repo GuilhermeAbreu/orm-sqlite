@@ -104,7 +104,7 @@ describe('NewQueryBuilder - SELECT Operations', () => {
 
     it('should generate query with OR conditions when where is an array', () => {
       const sql = queryBuilder.findMany({
-        where: [
+        or: [
           { name: 'João', age: 20 },
           { name: 'Maria' }
         ]

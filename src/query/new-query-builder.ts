@@ -21,7 +21,8 @@ type WhereCondition<T> = {
 };
 
 interface QueryOptions<T> {
-    where?: WhereCondition<T> | WhereCondition<T>[];
+    where?: WhereCondition<T>;
+    or?: WhereCondition<T>[];
     orderBy?: Partial<Record<keyof T, 'asc' | 'desc'>>;
     take?: number;
     skip?: number;
@@ -64,6 +65,9 @@ class NewQueryBuilder<T = any> {
         this.currentOperation = 'SELECT';
         this.selectColumns = options?.select?.map(col => `${this.tableName}.${String(col)}`) || ['*'];
         this.processWhere(options?.where);
+        if (options?.or) {
+            this.processOr(options.or);
+        }
         this.processOrderBy(options?.orderBy);
         this.processLimit(options?.take, options?.skip);
         this.processGroupBy(options?.groupBy);
@@ -105,6 +109,22 @@ class NewQueryBuilder<T = any> {
         });
 
         this.conditions.push(...conditions);
+    }
+
+    private processOr(orArray?: WhereCondition<T>[]): void {
+        if (!orArray) return;
+        const orConditions = orArray.map(cond => {
+            const conditions = Object.entries(cond).map(([key, value]) => {
+                if (typeof value === 'object' && value !== null) {
+                    const operator = Object.keys(value)[0];
+                    const operatorValue = (value as any)[operator];
+                    return this.buildWhereCondition(key, operator, operatorValue);
+                }
+                return `${this.tableName}.${key} = ${this.formatValue(value)}`;
+            });
+            return `(${conditions.join(' AND ')})`;
+        });
+        this.conditions.push(orConditions.join(' OR '));
     }
 
     private processOrderBy(orderBy?: Partial<Record<keyof T, 'asc' | 'desc'>>): void {
