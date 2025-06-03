@@ -21,7 +21,7 @@ type WhereCondition<T> = {
 };
 
 interface QueryOptions<T> {
-    where?: WhereCondition<T>;
+    where?: WhereCondition<T> | WhereCondition<T>[];
     orderBy?: Partial<Record<keyof T, 'asc' | 'desc'>>;
     take?: number;
     skip?: number;
@@ -76,8 +76,24 @@ class NewQueryBuilder<T = any> {
         return this.findMany({ ...options, take: 1 });
     }
 
-    private processWhere(where?: WhereCondition<T>): void {
+    private processWhere(where?: WhereCondition<T> | WhereCondition<T>[]): void {
         if (!where) return;
+
+        if (Array.isArray(where)) {
+            const orConditions = where.map(cond => {
+                const conditions = Object.entries(cond).map(([key, value]) => {
+                    if (typeof value === 'object' && value !== null) {
+                        const operator = Object.keys(value)[0];
+                        const operatorValue = (value as any)[operator];
+                        return this.buildWhereCondition(key, operator, operatorValue);
+                    }
+                    return `${this.tableName}.${key} = ${this.formatValue(value)}`;
+                });
+                return `(${conditions.join(' AND ')})`;
+            });
+            this.conditions.push(orConditions.join(' OR '));
+            return;
+        }
 
         const conditions = Object.entries(where).map(([key, value]) => {
             if (typeof value === 'object' && value !== null) {

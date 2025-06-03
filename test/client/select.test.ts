@@ -101,6 +101,18 @@ describe('NewQueryBuilder - SELECT Operations', () => {
 
       expect(sql).toBe(`SELECT * FROM user WHERE user.createdAt = '${date.toISOString()}'`);
     });
+
+    it('should generate query with OR conditions when where is an array', () => {
+      const sql = queryBuilder.findMany({
+        where: [
+          { name: 'João', age: 20 },
+          { name: 'Maria' }
+        ]
+      }).toString();
+      expect(sql).toBe(
+        "SELECT * FROM user WHERE (user.name = 'João' AND user.age = 20) OR (user.name = 'Maria')"
+      );
+    });
   });
 
   describe('findFirst', () => {
