@@ -20,7 +20,13 @@ type WhereCondition<T> = {
     [K in keyof T]?: WhereConditionValue<T[K]>;
 };
 
-interface QueryOptions<T> {
+type JoinOption<M = unknown> = {
+    table: IModelClassOrmSQlite<M>;
+    type: 'INNER' | 'LEFT' | 'RIGHT' | 'FULL';
+    on: WhereCondition<M>;
+};
+
+interface QueryOptions<T, K = any> {
     where?: WhereCondition<T>;
     or?: WhereCondition<T>[];
     orderBy?: Partial<Record<keyof T, 'asc' | 'desc'>>;
@@ -29,11 +35,7 @@ interface QueryOptions<T> {
     select?: (keyof T)[];
     groupBy?: (keyof T)[];
     having?: WhereCondition<T>;
-    join?: {
-        table: string;
-        type: 'INNER' | 'LEFT' | 'RIGHT' | 'FULL';
-        on: WhereCondition<T>;
-    }[];
+    join?: JoinOption<K>[];
 }
 
 class NewQueryBuilder<T = any> {
@@ -53,7 +55,7 @@ class NewQueryBuilder<T = any> {
         this.classModel;
     }
 
-    private getTableName(modelClass: IModelClassOrmSQlite<T>): string {
+    private getTableName(modelClass: IModelClassOrmSQlite<any>): string {
         const className = modelClass.entityName;
         if (!className) {
             throw new Error('Nome da tabela não informada ' + modelClass);
@@ -61,7 +63,7 @@ class NewQueryBuilder<T = any> {
         return className.replace(/([a-z])([A-Z])/g, '$1_$2').toLowerCase();
     }
 
-    findMany(options?: QueryOptions<T>): string {
+    findMany<K>(options?: QueryOptions<T, K>): string {
         this.currentOperation = 'SELECT';
         this.selectColumns = options?.select?.map(col => `${this.tableName}.${String(col)}`) || ['*'];
         this.processWhere(options?.where);
@@ -72,12 +74,12 @@ class NewQueryBuilder<T = any> {
         this.processLimit(options?.take, options?.skip);
         this.processGroupBy(options?.groupBy);
         this.processHaving(options?.having);
-        this.processJoin(options?.join);
+        this.processJoin(options?.join as JoinOption<K>[]);
         return this.toString();
     }
 
-    findFirst(options?: QueryOptions<T>): string {
-        return this.findMany({ ...options, take: 1 });
+    findFirst<K>(options?: QueryOptions<T, K>): string {
+        return this.findMany<K>({ ...options, take: 1 });
     }
 
     private processWhere(where?: WhereCondition<T> | WhereCondition<T>[]): void {
@@ -155,19 +157,32 @@ class NewQueryBuilder<T = any> {
         this.processWhere(having);
     }
 
-    private processJoin(joins?: QueryOptions<T>['join']): void {
+    private processJoin(joins?: JoinOption<any>[]): void {
         if (!joins) return;
         this.joins = joins.map(join => {
+            const joinTableName = this.getTableName(join.table);
             const onConditions = Object.entries(join.on).map(([key, value]) => {
                 if (typeof value === 'object' && value !== null) {
                     const operator = Object.keys(value)[0];
                     const operatorValue = (value as any)[operator];
-                    return this.buildWhereCondition(key, operator, operatorValue);
+                    return `${joinTableName}.${key} ${this.getSQLOperator(operator)} ${this.formatValue(operatorValue)}`;
                 }
-                return `${this.tableName}.${key} = ${this.formatValue(value)}`;
+                return `${joinTableName}.${key} = ${this.formatValue(value)}`;
             });
-            return `${join.type} JOIN ${join.table} ON ${onConditions.join(' AND ')}`;
+            return `${join.type} JOIN ${joinTableName} ON ${onConditions.join(' AND ')}`;
         });
+    }
+
+    private getSQLOperator(operator: string): string {
+        switch (operator) {
+            case 'gt': return '>';
+            case 'gte': return '>=';
+            case 'lt': return '<';
+            case 'lte': return '<=';
+            case 'in': return 'IN';
+            case 'not': return '!=';
+            default: return '=';
+        }
     }
 
     private buildWhereCondition(key: string, operator: string, value: any): string {
