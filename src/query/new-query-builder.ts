@@ -20,13 +20,18 @@ type WhereCondition<T> = {
     [K in keyof T]?: WhereConditionValue<T[K]>;
 };
 
-type JoinOption<M = unknown> = {
+// JoinOption recursivo para permitir joins aninhados
+// J = tipo do join aninhado
+// Por padrão, J = any
+
+type JoinOption<M = any> = {
     table: IModelClassOrmSQlite<M>;
     type: 'INNER' | 'LEFT' | 'RIGHT' | 'FULL';
     on: WhereCondition<M>;
+    join?: JoinOption<M>[];
 };
 
-interface QueryOptions<T, K = any> {
+interface QueryOptions<T> {
     where?: WhereCondition<T>;
     or?: WhereCondition<T>[];
     orderBy?: Partial<Record<keyof T, 'asc' | 'desc'>>;
@@ -35,7 +40,7 @@ interface QueryOptions<T, K = any> {
     select?: (keyof T)[];
     groupBy?: (keyof T)[];
     having?: WhereCondition<T>;
-    join?: JoinOption<K>[];
+    join?: JoinOption[];
 }
 
 class NewQueryBuilder<T = any> {
@@ -63,7 +68,7 @@ class NewQueryBuilder<T = any> {
         return className.replace(/([a-z])([A-Z])/g, '$1_$2').toLowerCase();
     }
 
-    findMany<K>(options?: QueryOptions<T, K>): string {
+    findMany<K>(options?: QueryOptions<T>): string {
         this.currentOperation = 'SELECT';
         this.selectColumns = options?.select?.map(col => `${this.tableName}.${String(col)}`) || ['*'];
         this.processWhere(options?.where);
@@ -78,8 +83,8 @@ class NewQueryBuilder<T = any> {
         return this.toString();
     }
 
-    findFirst<K>(options?: QueryOptions<T, K>): string {
-        return this.findMany<K>({ ...options, take: 1 });
+    findFirst(options?: QueryOptions<T>): string {
+        return this.findMany({ ...options, take: 1 });
     }
 
     private processWhere(where?: WhereCondition<T> | WhereCondition<T>[]): void {
@@ -159,7 +164,8 @@ class NewQueryBuilder<T = any> {
 
     private processJoin(joins?: JoinOption<any>[]): void {
         if (!joins) return;
-        this.joins = joins.map(join => {
+        const joinStrings: string[] = [];
+        for (const join of joins) {
             const joinTableName = this.getTableName(join.table);
             const onConditions = Object.entries(join.on).map(([key, value]) => {
                 if (typeof value === 'object' && value !== null) {
@@ -169,8 +175,34 @@ class NewQueryBuilder<T = any> {
                 }
                 return `${joinTableName}.${key} = ${this.formatValue(value)}`;
             });
-            return `${join.type} JOIN ${joinTableName} ON ${onConditions.join(' AND ')}`;
-        });
+            let joinStr = `${join.type} JOIN ${joinTableName} ON ${onConditions.join(' AND ')}`;
+            // Processa joins aninhados recursivamente
+            if (join.join && join.join.length > 0) {
+                joinStr += ' ' + this.processJoinRecursive(join.join);
+            }
+            joinStrings.push(joinStr);
+        }
+        this.joins = joinStrings;
+    }
+
+    private processJoinRecursive(joins?: JoinOption<any>[]): string {
+        if (!joins) return '';
+        return joins.map(join => {
+            const joinTableName = this.getTableName(join.table);
+            const onConditions = Object.entries(join.on).map(([key, value]) => {
+                if (typeof value === 'object' && value !== null) {
+                    const operator = Object.keys(value)[0];
+                    const operatorValue = (value as any)[operator];
+                    return `${joinTableName}.${key} ${this.getSQLOperator(operator)} ${this.formatValue(operatorValue)}`;
+                }
+                return `${joinTableName}.${key} = ${this.formatValue(value)}`;
+            });
+            let joinStr = `${join.type} JOIN ${joinTableName} ON ${onConditions.join(' AND ')}`;
+            if (join.join && join.join.length > 0) {
+                joinStr += ' ' + this.processJoinRecursive(join.join);
+            }
+            return joinStr;
+        }).join(' ');
     }
 
     private getSQLOperator(operator: string): string {
