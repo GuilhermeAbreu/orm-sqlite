@@ -56,9 +56,10 @@ export class QueryBuildSQlite<T = any> {
             const orConditions = where.map(cond => {
                 const conditions = Object.entries(cond).map(([key, value]) => {
                     if (typeof value === 'object' && value !== null) {
-                        const operator = Object.keys(value)[0];
-                        const operatorValue = (value as any)[operator];
-                        return this.buildWhereCondition(key, operator, operatorValue);
+                        const conditions = Object.entries(value).map(([operator, operatorValue]) => {
+                            return this.buildWhereCondition(key, operator, operatorValue);
+                        });
+                        return conditions.join(' AND ');
                     }
                     return `${this.tableName}.${key} = ${this.formatValue(value)}`;
                 });
@@ -70,9 +71,10 @@ export class QueryBuildSQlite<T = any> {
 
         const conditions = Object.entries(where).map(([key, value]) => {
             if (typeof value === 'object' && value !== null) {
-                const operator = Object.keys(value)[0];
-                const operatorValue = (value as any)[operator];
-                return this.buildWhereCondition(key, operator, operatorValue);
+                const conditions = Object.entries(value).map(([operator, operatorValue]) => {
+                    return this.buildWhereCondition(key, operator, operatorValue);
+                });
+                return conditions.join(' AND ');
             }
             return `${this.tableName}.${key} = ${this.formatValue(value)}`;
         });
@@ -259,10 +261,13 @@ export class QueryBuildSQlite<T = any> {
     delete(options?: QueryOptions<T>): string {
         this.currentOperation = 'DELETE';
         this.processWhere(options?.where);
+        this.processOr(options?.or);
+        this.processJoin(options?.join as JoinOption<any>[]);
+        this.processLimit(options?.take, options?.skip);
         return this.toString();
     }
 
-    toString(): string {
+    private toString(): string {
         switch (this.currentOperation) {
             case 'SELECT':
                 return [
