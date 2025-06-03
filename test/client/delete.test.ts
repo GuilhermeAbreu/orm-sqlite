@@ -72,5 +72,45 @@ describe('NewQueryBuilder - DELETE Operations', () => {
         "DELETE FROM user WHERE user.email = NULL AND user.name != ''"
       );
     });
+
+    it('should handle array conditions with IN operator', () => {
+      const sql = queryBuilder.delete({
+        where: {
+          id: { in: [1, 2, 3, 4] }
+        }
+      });
+      expect(sql).toBe(
+        "DELETE FROM user WHERE user.id IN (1, 2, 3, 4)"
+      );
+    });
+
+    it('should handle multiple comparison operators', () => {
+      const sql = queryBuilder.delete({
+        where: {
+          age: { gte: 18, lte: 65 },
+          email: { not: null }
+        }
+      });
+      expect(sql).toBe(
+        "DELETE FROM user WHERE user.age >= 18 AND user.age <= 65 AND user.email != NULL"
+      );
+    });
+
+    it('should handle empty where conditions', () => {
+      const sql = queryBuilder.delete({});
+      expect(sql).toBe("DELETE FROM user");
+    });
+
+    it('should handle OR conditions', () => {
+      const sql = queryBuilder.delete({
+        or: [
+          { name: 'John' },
+          { email: { not: null } }
+        ]
+      });
+      expect(sql).toBe(
+        "DELETE FROM user WHERE (user.name = 'John') OR (user.email != NULL)"
+      );
+    });
   });
 }); 
