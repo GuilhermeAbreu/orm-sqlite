@@ -1,10 +1,10 @@
-import { QueryBuilderSQlite } from '../../src/query/query-build-sqlite';
+import { QueryBuildSQlite } from '../../src/query/query-build-sqlite';
 
 describe('NewQueryBuilder - JOIN com ON customizado (string e array de strings)', () => {
   class User { static entityName = 'user'; id!: number; name!: string; }
   class Post { static entityName = 'post'; id!: number; userId!: number; title!: string; }
 
-  const queryBuilder = new QueryBuilderSQlite<User>(User);
+  const queryBuilder = new QueryBuildSQlite<User>(User);
 
   it('should generate JOIN with ON as a custom SQL string', () => {
     const sql = queryBuilder.findMany({

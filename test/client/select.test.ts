@@ -1,11 +1,11 @@
-import { QueryBuilderSQlite } from '../../src/query/query-build-sqlite';
+import { QueryBuildSQlite } from '../../src/query/query-build-sqlite';
 import { User } from '../class/User.class';
 
 describe('NewQueryBuilder - SELECT Operations', () => {
-  let queryBuilder: QueryBuilderSQlite<User>;
+  let queryBuilder: QueryBuildSQlite<User>;
 
   beforeEach(() => {
-    queryBuilder = new QueryBuilderSQlite(User);
+    queryBuilder = new QueryBuildSQlite(User);
   });
 
   describe('findMany', () => {

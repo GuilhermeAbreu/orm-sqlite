@@ -1,10 +1,10 @@
-import { QueryBuilderSQlite } from '../../src/query/query-build-sqlite';
+import { QueryBuildSQlite } from '../../src/query/query-build-sqlite';
 
 describe('NewQueryBuilder - FULL JOIN', () => {
   class User { static entityName = 'user'; id!: number; name!: string; }
   class Post { static entityName = 'post'; userId!: number; title!: string; }
 
-  const queryBuilder = new QueryBuilderSQlite<User>(User);
+  const queryBuilder = new QueryBuildSQlite<User>(User);
 
   it('should generate FULL JOIN query', () => {
     const sql = queryBuilder.findMany({
