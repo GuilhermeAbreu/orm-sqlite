@@ -7,7 +7,7 @@ describe('NewQueryBuilder - FULL JOIN', () => {
   const queryBuilder = new NewQueryBuilder<User>(User);
 
   it('should generate FULL JOIN query', () => {
-    const sql = queryBuilder.findMany< Post>({
+    const sql = queryBuilder.findMany({
       join: [
         {
           table: Post,
@@ -22,7 +22,7 @@ describe('NewQueryBuilder - FULL JOIN', () => {
   });
 
   it('should generate FULL JOIN with multiple ON conditions', () => {
-    const sql = queryBuilder.findMany<Post>({
+    const sql = queryBuilder.findMany({
       join: [
         {
           table: Post,  

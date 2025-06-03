@@ -20,18 +20,16 @@ type WhereCondition<T> = {
     [K in keyof T]?: WhereConditionValue<T[K]>;
 };
 
-// JoinOption recursivo para permitir joins aninhados
-// J = tipo do join aninhado
-// Por padrão, J = any
+type JoinOn<M> = WhereCondition<M> | string | string[];
 
-type JoinOption<M = any> = {
+type JoinOption<M, J = any> = {
     table: IModelClassOrmSQlite<M>;
     type: 'INNER' | 'LEFT' | 'RIGHT' | 'FULL';
-    on: WhereCondition<M>;
-    join?: JoinOption<M>[];
+    on: JoinOn<M>;
+    join?: JoinOption<J>[];
 };
 
-interface QueryOptions<T> {
+interface QueryOptions<T, J = any> {
     where?: WhereCondition<T>;
     or?: WhereCondition<T>[];
     orderBy?: Partial<Record<keyof T, 'asc' | 'desc'>>;
@@ -40,7 +38,7 @@ interface QueryOptions<T> {
     select?: (keyof T)[];
     groupBy?: (keyof T)[];
     having?: WhereCondition<T>;
-    join?: JoinOption[];
+    join?: JoinOption<J>[];
 }
 
 class NewQueryBuilder<T = any> {
@@ -68,7 +66,7 @@ class NewQueryBuilder<T = any> {
         return className.replace(/([a-z])([A-Z])/g, '$1_$2').toLowerCase();
     }
 
-    findMany<K>(options?: QueryOptions<T>): string {
+    findMany(options?: QueryOptions<T, any>): string {
         this.currentOperation = 'SELECT';
         this.selectColumns = options?.select?.map(col => `${this.tableName}.${String(col)}`) || ['*'];
         this.processWhere(options?.where);
@@ -79,7 +77,7 @@ class NewQueryBuilder<T = any> {
         this.processLimit(options?.take, options?.skip);
         this.processGroupBy(options?.groupBy);
         this.processHaving(options?.having);
-        this.processJoin(options?.join as JoinOption<K>[]);
+        this.processJoin(options?.join as JoinOption<any>[]);
         return this.toString();
     }
 
@@ -167,15 +165,23 @@ class NewQueryBuilder<T = any> {
         const joinStrings: string[] = [];
         for (const join of joins) {
             const joinTableName = this.getTableName(join.table);
-            const onConditions = Object.entries(join.on).map(([key, value]) => {
-                if (typeof value === 'object' && value !== null) {
-                    const operator = Object.keys(value)[0];
-                    const operatorValue = (value as any)[operator];
-                    return `${joinTableName}.${key} ${this.getSQLOperator(operator)} ${this.formatValue(operatorValue)}`;
-                }
-                return `${joinTableName}.${key} = ${this.formatValue(value)}`;
-            });
-            let joinStr = `${join.type} JOIN ${joinTableName} ON ${onConditions.join(' AND ')}`;
+            let onClause = '';
+            if (typeof join.on === 'string') {
+                onClause = join.on;
+            } else if (Array.isArray(join.on)) {
+                onClause = join.on.join(' AND ');
+            } else if (typeof join.on === 'object' && join.on !== null) {
+                const onConditions = Object.entries(join.on).map(([key, value]) => {
+                    if (typeof value === 'object' && value !== null) {
+                        const operator = Object.keys(value)[0];
+                        const operatorValue = (value as any)[operator];
+                        return `${joinTableName}.${key} ${this.getSQLOperator(operator)} ${this.formatValue(operatorValue)}`;
+                    }
+                    return `${joinTableName}.${key} = ${this.formatValue(value)}`;
+                });
+                onClause = onConditions.join(' AND ');
+            }
+            let joinStr = `${join.type} JOIN ${joinTableName} ON ${onClause}`;
             // Processa joins aninhados recursivamente
             if (join.join && join.join.length > 0) {
                 joinStr += ' ' + this.processJoinRecursive(join.join);
@@ -189,15 +195,23 @@ class NewQueryBuilder<T = any> {
         if (!joins) return '';
         return joins.map(join => {
             const joinTableName = this.getTableName(join.table);
-            const onConditions = Object.entries(join.on).map(([key, value]) => {
-                if (typeof value === 'object' && value !== null) {
-                    const operator = Object.keys(value)[0];
-                    const operatorValue = (value as any)[operator];
-                    return `${joinTableName}.${key} ${this.getSQLOperator(operator)} ${this.formatValue(operatorValue)}`;
-                }
-                return `${joinTableName}.${key} = ${this.formatValue(value)}`;
-            });
-            let joinStr = `${join.type} JOIN ${joinTableName} ON ${onConditions.join(' AND ')}`;
+            let onClause = '';
+            if (typeof join.on === 'string') {
+                onClause = join.on;
+            } else if (Array.isArray(join.on)) {
+                onClause = join.on.join(' AND ');
+            } else if (typeof join.on === 'object' && join.on !== null) {
+                const onConditions = Object.entries(join.on).map(([key, value]) => {
+                    if (typeof value === 'object' && value !== null) {
+                        const operator = Object.keys(value)[0];
+                        const operatorValue = (value as any)[operator];
+                        return `${joinTableName}.${key} ${this.getSQLOperator(operator)} ${this.formatValue(operatorValue)}`;
+                    }
+                    return `${joinTableName}.${key} = ${this.formatValue(value)}`;
+                });
+                onClause = onConditions.join(' AND ');
+            }
+            let joinStr = `${join.type} JOIN ${joinTableName} ON ${onClause}`;
             if (join.join && join.join.length > 0) {
                 joinStr += ' ' + this.processJoinRecursive(join.join);
             }
@@ -213,6 +227,7 @@ class NewQueryBuilder<T = any> {
             case 'lte': return '<=';
             case 'in': return 'IN';
             case 'not': return '!=';
+            case 'eq': return '=';
             default: return '=';
         }
     }

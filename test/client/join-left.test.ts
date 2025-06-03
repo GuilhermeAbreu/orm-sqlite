@@ -7,7 +7,7 @@ describe('NewQueryBuilder - LEFT JOIN', () => {
   const queryBuilder = new NewQueryBuilder<User>(User);
 
   it('should generate LEFT JOIN query', () => {
-    const sql = queryBuilder.findMany<Post>({
+    const sql = queryBuilder.findMany({
       join: [
         {
           table: Post,
@@ -22,7 +22,7 @@ describe('NewQueryBuilder - LEFT JOIN', () => {
   });
 
   it('should generate LEFT JOIN with multiple ON conditions', () => {
-    const sql = queryBuilder.findMany<Post>({
+    const sql = queryBuilder.findMany({
       join: [
         {
           table: Post,

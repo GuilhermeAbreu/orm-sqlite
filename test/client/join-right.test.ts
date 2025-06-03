@@ -7,7 +7,7 @@ describe('NewQueryBuilder - RIGHT JOIN', () => {
   const queryBuilder = new NewQueryBuilder<User>(User);
 
   it('should generate RIGHT JOIN query', () => {
-    const sql = queryBuilder.findMany<Post>({
+    const sql = queryBuilder.findMany({
       join: [
         {
           table: Post,
@@ -22,7 +22,7 @@ describe('NewQueryBuilder - RIGHT JOIN', () => {
   });
 
   it('should generate RIGHT JOIN with multiple ON conditions', () => {
-    const sql = queryBuilder.findMany<Post>({
+    const sql = queryBuilder.findMany({
       join: [
         {
           table: Post,

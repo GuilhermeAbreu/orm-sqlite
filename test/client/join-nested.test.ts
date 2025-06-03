@@ -8,7 +8,7 @@ describe('NewQueryBuilder - Nested JOIN (join em join)', () => {
   const queryBuilder = new NewQueryBuilder<Post>(Post);
 
   it('should generate nested JOIN (join em join)', () => {
-    const sql = queryBuilder.findMany<Comment>({
+    const sql = queryBuilder.findMany({
       join: [
         {
           table: Comment,
@@ -50,7 +50,7 @@ describe('NewQueryBuilder - Nested JOIN (join em join)', () => {
   });
 
   it('should generate deeply nested joins', () => {
-    const sql = queryBuilder.findMany<Comment>({
+    const sql = queryBuilder.findMany({
       join: [
         {
           table: Comment,

@@ -7,7 +7,7 @@ describe('NewQueryBuilder - INNER JOIN', () => {
   const queryBuilder = new NewQueryBuilder<User>(User);
 
   it('should generate INNER JOIN query', () => {
-    const sql = queryBuilder.findMany<Post>({
+    const sql = queryBuilder.findMany({
       join: [
         {
           table: Post,
@@ -22,7 +22,7 @@ describe('NewQueryBuilder - INNER JOIN', () => {
   });
 
   it('should generate INNER JOIN with multiple ON conditions', () => {
-    const sql = queryBuilder.findMany<Post | User>({
+    const sql = queryBuilder.findMany({
       join: [
         {
           table: Post,
