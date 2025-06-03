@@ -47,8 +47,8 @@ export interface ITableColumnOrmSQlite {
 }
 
 export type IColumnTypeOrmSQlite<T> = {
-    [K in keyof T]: {
-        name: K;
+    [K in keyof T | string]: {
+        name: K extends keyof T ? K : string;
         type: 'INTEGER' | 'TEXT' | 'BOOLEAN' | 'DATE';
         primaryKey?: boolean;
         unique?: boolean;
@@ -56,7 +56,7 @@ export type IColumnTypeOrmSQlite<T> = {
         defaultValue?: any;
         autoIncremente?: boolean;
     };
-}[keyof T];
+}[keyof T | string];
 
 
 export type IColumnOrmSQlite = {
