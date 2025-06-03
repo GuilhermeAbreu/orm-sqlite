@@ -53,7 +53,19 @@ beforeAll((done) => {
                                 name: 'name',
                                 type: 'TEXT',
                                 notNull: true
-                            }
+                            },
+                            {
+                                name: 'email',
+                                type: 'TEXT',
+                            },
+                            {
+                                name: 'age',
+                                type: 'INTEGER',
+                            },
+                            {
+                                name: 'createdAt',
+                                type: 'TEXT',
+                            },
                         ]
                     ), (err) => {
                         if (err) {
@@ -80,7 +92,7 @@ beforeAll((done) => {
                                             name: 'userId',
                                             notNull: true,
                                             type: 'INTEGER',
-                                        }
+                                        },
                                     ]
                                 ), done
                         );
@@ -262,7 +274,7 @@ test('should update data in the database', (done) => {
 
 test('should delete data from the database', (done) => {
     const queryBuilder = new QueryBuildOrmSQlite<User>(User);
-    const insertQuery = queryBuilder.insert([new User({ name: 'John Doe' })]);
+    const insertQuery = queryBuilder.insert({ name: 'John Doe' });
 
     db.run(insertQuery, function (err) {
         if (err) {

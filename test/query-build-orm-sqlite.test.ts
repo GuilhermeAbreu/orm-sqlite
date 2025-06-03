@@ -81,9 +81,9 @@ describe('QueryBuildOrmSQlite', () => {
     });
 
     it('should generate a correct INSERT query', function () {
-        const queryBuilder = new QueryBuildOrmSQlite<User>(User);
-        const insertValues = [new User({ name: 'John Doe' }), new User({ name: 'Jane Smith' })];
-        const expectedQuery = "INSERT INTO user (id, name) VALUES (NULL, 'John Doe'), (NULL, 'Jane Smith') RETURNING *";
+        const queryBuilder = new QueryBuildOrmSQlite(User);
+        const insertValues = [{ name: 'John Doe' }, { name: 'Jane Smith' }];
+        const expectedQuery = "INSERT INTO user (name) VALUES ('John Doe'), ('Jane Smith') RETURNING *";
 
     ;
 
@@ -92,8 +92,8 @@ describe('QueryBuildOrmSQlite', () => {
     });
 
     it('should generate a correct UPDATE query', function () {
-        const queryBuilder = new QueryBuildOrmSQlite<User>(User);
-        const updateValues = new User({name: 'John Doe Updated'});
+        const queryBuilder = new QueryBuildOrmSQlite(User);
+        const updateValues = {name: 'John Doe Updated'};
         const expectedQuery = "UPDATE user SET name = 'John Doe Updated' WHERE id = 1 RETURNING *";
 
 
@@ -102,7 +102,7 @@ describe('QueryBuildOrmSQlite', () => {
     });
 
     it('should generate a correct DELETE query', function () {
-        const queryBuilder = new QueryBuildOrmSQlite<User>(User);
+        const queryBuilder = new QueryBuildOrmSQlite(User);
         const expectedQuery = "DELETE FROM user WHERE id = 1";
 
         const query = queryBuilder.where('id', 1).delete().replace(/\s{2,}/g, ' '); // Remove espaços extras
@@ -110,7 +110,7 @@ describe('QueryBuildOrmSQlite', () => {
     });
 
     it('should generate a correct SELECT query with LEFT JOIN', function () {
-        const queryBuilder = new QueryBuildOrmSQlite<User>(User);
+        const queryBuilder = new QueryBuildOrmSQlite(User);
 
         queryBuilder
             .leftJoin(Post, 'id', 'userId', 'posts')
@@ -128,7 +128,7 @@ describe('QueryBuildOrmSQlite', () => {
 
 
     it('should generate a correct SELECT query with LEFT JOIN on JOIN', function () {
-        const queryBuilder = new QueryBuildOrmSQlite<User>(User);
+        const queryBuilder = new QueryBuildOrmSQlite(User);
 
         queryBuilder
             .leftJoin(Post, 'id', 'userId', 'posts')
