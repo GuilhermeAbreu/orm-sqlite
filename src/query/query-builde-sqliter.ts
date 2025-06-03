@@ -1,47 +1,11 @@
-import type { IModelClassOrmSQlite } from './query-build.definitions';
+import type { IModelClassOrmSQlite, JoinOption, OrderByDirection, QueryOptions, WhereCondition, WhereConditionValue } from './query-build.definitions';
 
-type OrderByDirection = 'asc' | 'desc';
+/**
+ * @experimental Esta classe está em desenvolvimento experimental e pode sofrer alterações significativas em versões futuras.
+ * Use com cautela em ambiente de produção.
+ */
 
-type WhereOperator<T> = {
-    gt?: T;
-    gte?: T;
-    lt?: T;
-    lte?: T;
-    in?: T | T[];
-    not?: T;
-    eq?: T;
-};
-
-type WhereConditionValue<T> = T extends Date
-    ? WhereOperator<T> | null | undefined
-    : T | WhereOperator<T> | null | undefined;
-
-type WhereCondition<T> = {
-    [K in keyof T]?: WhereConditionValue<T[K]>;
-};
-
-type JoinOn<M> = WhereCondition<M> | string | string[];
-
-type JoinOption<M, J = any> = {
-    table: IModelClassOrmSQlite<M>;
-    type: 'INNER' | 'LEFT' | 'RIGHT' | 'FULL';
-    on: JoinOn<M>;
-    join?: JoinOption<J>[];
-};
-
-interface QueryOptions<T, J = any> {
-    where?: WhereCondition<T>;
-    or?: WhereCondition<T>[];
-    orderBy?: Partial<Record<keyof T, 'asc' | 'desc'>>;
-    take?: number;
-    skip?: number;
-    select?: (keyof T)[];
-    groupBy?: (keyof T)[];
-    having?: WhereCondition<T>;
-    join?: JoinOption<J>[];
-}
-
-class NewQueryBuilder<T = any> {
+class QueryBuilderSQlite<T = any> {
     private tableName: string;
     private classModel: IModelClassOrmSQlite<T>;
     private conditions: string[] = [];
@@ -334,4 +298,4 @@ class NewQueryBuilder<T = any> {
     }
 }
 
-export { NewQueryBuilder, QueryOptions, WhereCondition, WhereConditionValue };
+export { QueryBuilderSQlite, QueryOptions, WhereCondition, WhereConditionValue };

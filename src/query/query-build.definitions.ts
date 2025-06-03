@@ -68,6 +68,49 @@ export type IColumnOrmSQlite = {
     autoIncremente?: boolean;
 };
 
+
+export type OrderByDirection = 'asc' | 'desc';
+
+export type WhereOperator<T> = {
+    gt?: T;
+    gte?: T;
+    lt?: T;
+    lte?: T;
+    in?: T | T[];
+    not?: T;
+    eq?: T;
+};
+
+export type WhereConditionValue<T> = T extends Date
+    ? WhereOperator<T> | null | undefined
+    : T | WhereOperator<T> | null | undefined;
+
+export type WhereCondition<T> = {
+    [K in keyof T]?: WhereConditionValue<T[K]>;
+};
+
+export type JoinOn<M> = WhereCondition<M> | string | string[];
+
+export type JoinOption<M, J = any> = {
+    table: IModelClassOrmSQlite<M>;
+    type: 'INNER' | 'LEFT' | 'RIGHT' | 'FULL';
+    on: JoinOn<M>;
+    join?: JoinOption<J>[];
+};
+
+export interface QueryOptions<T, J = any> {
+    where?: WhereCondition<T>;
+    or?: WhereCondition<T>[];
+    orderBy?: Partial<Record<keyof T, 'asc' | 'desc'>>;
+    take?: number;
+    skip?: number;
+    select?: (keyof T)[];
+    groupBy?: (keyof T)[];
+    having?: WhereCondition<T>;
+    join?: JoinOption<J>[];
+}
+
+
 export type ITypeOrderBySql = 'ASC' | "DESC"
 
 

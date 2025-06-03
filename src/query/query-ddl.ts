@@ -1,5 +1,9 @@
 import type { IColumnTypeOrmSQlite, IModelClassOrmSQlite } from './query-build.definitions';
 
+/**
+ * @experimental Esta classe está em desenvolvimento experimental e pode sofrer alterações significativas em versões futuras.
+ * Use com cautela em ambiente de produção.
+ */
 export class QueryDDL {
   static createTable<T>(modelClass: IModelClassOrmSQlite<T>, columns: IColumnTypeOrmSQlite<T>[]): string {
     if (!modelClass.entityName) throw new Error('Nome da tabela não informado');
