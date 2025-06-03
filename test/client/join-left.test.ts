@@ -1,12 +1,11 @@
-import { NewQueryBuilder } from '../../src/query/new-query-builder';
+import { QueryBuilderSQlite } from '../../src/query/query-build-sqlite';
+import { Post } from '../class/Post.class';
 
 describe('NewQueryBuilder - LEFT JOIN', () => {
   class User { static entityName = 'user'; id!: number; name!: string; }
-  class Post { static entityName = 'post'; userId!: number; title!: string; }
-
-  const queryBuilder = new NewQueryBuilder<User>(User);
 
   it('should generate LEFT JOIN query', () => {
+    const queryBuilder = new QueryBuilderSQlite<User>(User);
     const sql = queryBuilder.findMany({
       join: [
         {
@@ -22,6 +21,7 @@ describe('NewQueryBuilder - LEFT JOIN', () => {
   });
 
   it('should generate LEFT JOIN with multiple ON conditions', () => {
+    const queryBuilder = new QueryBuilderSQlite<User>(User);
     const sql = queryBuilder.findMany({
       join: [
         {

@@ -1,10 +1,10 @@
-import { NewQueryBuilder } from '../../src/query/new-query-builder';
+import { QueryBuildSQlite } from '../../src/query/query-build-sqlite';
 
 describe('NewQueryBuilder - RIGHT JOIN', () => {
   class User { static entityName = 'user'; id!: number; name!: string; }
   class Post { static entityName = 'post'; userId!: number; title!: string; }
 
-  const queryBuilder = new NewQueryBuilder<User>(User);
+  const queryBuilder = new QueryBuildSQlite<User>(User);
 
   it('should generate RIGHT JOIN query', () => {
     const sql = queryBuilder.findMany({

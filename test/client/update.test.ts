@@ -1,11 +1,11 @@
-import { NewQueryBuilder } from '../../src/query/new-query-builder';
+import { QueryBuildSQlite } from '../../src/query/query-build-sqlite';
 import { User } from '../class/User.class';
 
 describe('NewQueryBuilder - UPDATE Operations', () => {
-  let queryBuilder: NewQueryBuilder<User>;
+  let queryBuilder: QueryBuildSQlite<User>;
 
   beforeEach(() => {
-    queryBuilder = new NewQueryBuilder(User);
+    queryBuilder = new QueryBuildSQlite(User);
   });
 
   describe('update', () => {

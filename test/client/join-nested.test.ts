@@ -1,11 +1,11 @@
-import { NewQueryBuilder } from '../../src/query/new-query-builder';
+import { QueryBuilderSQlite } from '../../src/query/query-build-sqlite';
 
 describe('NewQueryBuilder - Nested JOIN (join em join)', () => {
   class User { static entityName = 'user'; id!: number; name!: string; }
   class Post { static entityName = 'post'; id!: number; userId!: number; title!: string; }
   class Comment { static entityName = 'comment'; id!: number; postId!: number; content!: string; }
 
-  const queryBuilder = new NewQueryBuilder<Post>(Post);
+  const queryBuilder = new QueryBuilderSQlite<Post>(Post);
 
   it('should generate nested JOIN (join em join)', () => {
     const sql = queryBuilder.findMany({

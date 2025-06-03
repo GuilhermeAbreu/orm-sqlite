@@ -1,12 +1,12 @@
-import { NewQueryBuilder } from '../../src/query/new-query-builder';
+import { QueryBuilderSQlite } from '../../src/query/query-build-sqlite';
 import { User } from '../class/User.class';
 
 
 describe('NewQueryBuilder - DELETE Operations', () => {
-  let queryBuilder: NewQueryBuilder<User>;
+  let queryBuilder: QueryBuilderSQlite<User>;
 
   beforeEach(() => {
-    queryBuilder = new NewQueryBuilder(User);
+    queryBuilder = new QueryBuilderSQlite(User);
   });
 
   describe('delete', () => {

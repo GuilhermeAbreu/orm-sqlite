@@ -1,11 +1,11 @@
-import type { IModelClassOrmSQlite, JoinOption, OrderByDirection, QueryOptions, WhereCondition, WhereConditionValue } from './query-build.definitions';
+import type { IModelClassOrmSQlite, JoinOption, OrderByDirection, QueryOptions, WhereCondition } from './query-build.definitions';
 
 /**
  * @experimental Esta classe está em desenvolvimento experimental e pode sofrer alterações significativas em versões futuras.
  * Use com cautela em ambiente de produção.
  */
 
-class QueryBuilderSQlite<T = any> {
+export class QueryBuildSQlite<T = any> {
     private tableName: string;
     private classModel: IModelClassOrmSQlite<T>;
     private conditions: string[] = [];
@@ -297,5 +297,3 @@ class QueryBuilderSQlite<T = any> {
         }
     }
 }
-
-export { QueryBuilderSQlite, QueryOptions, WhereCondition, WhereConditionValue };
