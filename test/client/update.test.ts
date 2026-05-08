@@ -1,3 +1,4 @@
+import { OrmSQLiteError } from '../../src/errors/orm-sqlite.error';
 import { QueryBuildSQlite } from '../../src/query/query-build-sqlite';
 import { User } from '../class/User.class';
 
@@ -106,6 +107,28 @@ describe('NewQueryBuilder - UPDATE Operations', () => {
       expect(sql).toBe(
         "UPDATE user SET user.name = 'John' WHERE user.age > 18 AND user.email IN ('john@example.com', 'jane@example.com')"
       );
+    });
+
+    it('should expose ERR_UNSAFE_IDENTIFIER for unsafe update column', () => {
+      try {
+        queryBuilder.update({
+          ['name;DROP TABLE user;--' as any]: 'John',
+        } as any);
+        throw new Error('expected update to throw');
+      } catch (error) {
+        expect(error).toBeInstanceOf(OrmSQLiteError);
+        expect((error as OrmSQLiteError).code).toBe('ERR_UNSAFE_IDENTIFIER');
+      }
+    });
+
+    it('should generate parameterized UPDATE query', () => {
+      const result = queryBuilder.updateWithParams({
+        name: 'John',
+        email: 'john@example.com',
+      } as any);
+
+      expect(result.sql).toBe('UPDATE user SET user.name = ?, user.email = ?');
+      expect(result.params).toEqual(['John', 'john@example.com']);
     });
   });
 }); 

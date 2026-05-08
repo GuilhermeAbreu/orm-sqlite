@@ -9,7 +9,7 @@ export class Comentario {
     public id!: number;
 
     @Column()
-    descricao: string = '';
+    descricao = '';
 
     @Column()
     postId!: number;

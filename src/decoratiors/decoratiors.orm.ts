@@ -1,4 +1,11 @@
+import { OrmSQLiteError } from '../errors/orm-sqlite.error';
 import { defineMetadata, getMetadata, getMetadataAllByName } from '../metadata/geranciado.metadata';
+
+function ensurePropertyActions(target: any): void {
+  if (!target.constructor.prototype.propertyActions) {
+    target.constructor.prototype.propertyActions = [];
+  }
+}
 
 // Decorador para nome da entidade
 export function EntityName(name: string): ClassDecorator {
@@ -15,9 +22,7 @@ export function EntityName(name: string): ClassDecorator {
   // Decorador para colunas
  export function Column(pOpcao?: { primaryKey: boolean }): PropertyDecorator {
     return function (target: any, propertyKey: string | symbol) {
-      if (!target.constructor.prototype.propertyActions) {
-        target.constructor.prototype.propertyActions = [];
-      }
+      ensurePropertyActions(target);
       target.constructor.prototype.propertyActions.push(() => {
         defineMetadata(target, propertyKey, 'isColumn', true);
         if (pOpcao?.primaryKey) {
@@ -30,6 +35,7 @@ export function EntityName(name: string): ClassDecorator {
   // Decorador para relacionamentos
   export function ManyToOne(): PropertyDecorator {
     return function (target: any, propertyKey: string | symbol) {
+      ensurePropertyActions(target);
       target.constructor.prototype.propertyActions.push(() => {
         defineMetadata(target, propertyKey, 'isManyToOne', true);
       });
@@ -38,6 +44,7 @@ export function EntityName(name: string): ClassDecorator {
   
   export function OneToMany(): PropertyDecorator {
     return function (target: any, propertyKey: string | symbol) {
+      ensurePropertyActions(target);
       target.constructor.prototype.propertyActions.push(() => {
         defineMetadata(target, propertyKey, 'isOneToMany', true);
       });
@@ -46,6 +53,7 @@ export function EntityName(name: string): ClassDecorator {
   
   export function OneToOne(): PropertyDecorator {
     return function (target: any, propertyKey: string | symbol) {
+      ensurePropertyActions(target);
       target.constructor.prototype.propertyActions.push(() => {
         defineMetadata(target, propertyKey, 'isOneToOne', true);
       });
@@ -54,6 +62,7 @@ export function EntityName(name: string): ClassDecorator {
   
   export function ManyToMany(): PropertyDecorator {
     return function (target: any, propertyKey: string | symbol) {
+      ensurePropertyActions(target);
       target.constructor.prototype.propertyActions.push(() => {
         defineMetadata(target, propertyKey, 'isManyToMany', true);
       });
@@ -72,7 +81,10 @@ export function EntityName(name: string): ClassDecorator {
         return key as keyof T;
       }
     }
-    throw new Error(`Primary key not found in class '${target.constructor.entityName}'`);
+    throw new OrmSQLiteError(
+      'ERR_PRIMARY_KEY_NOT_FOUND',
+      `Primary key not found in class '${target.constructor.entityName}'`
+    );
   }
   
   export function isColumn(target: any, propertyKey: string | symbol): boolean {

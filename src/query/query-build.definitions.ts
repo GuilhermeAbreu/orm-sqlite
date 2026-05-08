@@ -15,6 +15,11 @@ export interface IQueryOptionsOrmSQlite<T = any> {
     distinct?: T[]
 }
 
+export interface IParameterizedQueryOrmSQLite {
+    sql: string;
+    params: any[];
+}
+
 export interface IJoinClauseOrmSQlite<T = any, U = any, J = any> {
     tableName: string;
     foreignKey: keyof T;
@@ -131,8 +136,11 @@ export interface IQueryBuildOrmSQlite<T = any> {
     join<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K): this;
     leftJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K): this;
     getQuery(): string;
+    getQueryWithParams(): IParameterizedQueryOrmSQLite;
     insert(values: Partial<T> | Partial<T>[], returnValues?: boolean): string;
+    insertWithParams(values: Partial<T> | Partial<T>[], returnValues?: boolean): IParameterizedQueryOrmSQLite;
     update(values: Partial<T>, returnValues?: boolean): string;
+    updateWithParams(values: Partial<T>, returnValues?: boolean): IParameterizedQueryOrmSQLite;
     delete(): string;
     createTable(columns: IColumnTypeOrmSQlite<T>[]): string;
     addColumn(column: IColumnTypeOrmSQlite<T>): string;

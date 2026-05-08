@@ -9,7 +9,11 @@ export interface IDatabaseConnectionOrmSQLite {
   commitTransaction(): Promise<void>;
   rollbackTransaction(): Promise<void>;
   execute<T = any>(sql: string): Promise<IReturnExecuteQuery<T>>;
+  executeWithParams<T = any>(sql: string, params: any[]): Promise<IReturnExecuteQuery<T>>;
+  executeTransaction<T = any>(work: () => Promise<T>): Promise<T>;
   query<T = any>(sql: string): Promise<T[]>;
+  queryWithParams<T = any>(sql: string, params: any[]): Promise<T[]>;
+  queryOneWithParams<T = any>(sql: string, params: any[]): Promise<T | null>;
   getCurrentDBVersion(): Promise<number | undefined>;
   updateDBVersion(newVersion: number): Promise<void>;
   recreateDatabase(migration: IMigrationDatabaseOrmSQLite[]): Promise<void>;

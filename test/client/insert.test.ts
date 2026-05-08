@@ -1,3 +1,4 @@
+import { OrmSQLiteError } from '../../src/errors/orm-sqlite.error';
 import { QueryBuildSQlite } from '../../src/query/query-build-sqlite';
 import { User } from '../class/User.class';
 
@@ -90,6 +91,29 @@ describe('NewQueryBuilder - INSERT Operations', () => {
       expect(sql).toBe(
         "INSERT INTO user (name, email) VALUES ('John O''Connor', 'john.o''connor@example.com')"
       );
+    });
+
+    it('should expose ERR_UNSAFE_IDENTIFIER for unsafe insert column', () => {
+      try {
+        queryBuilder.insert({
+          ['name;DROP TABLE user;--' as any]: 'John',
+        } as any);
+        throw new Error('expected insert to throw');
+      } catch (error) {
+        expect(error).toBeInstanceOf(OrmSQLiteError);
+        expect((error as OrmSQLiteError).code).toBe('ERR_UNSAFE_IDENTIFIER');
+      }
+    });
+
+    it('should generate parameterized INSERT query', () => {
+      const result = queryBuilder.insertWithParams({
+        name: 'John',
+        email: 'john@example.com',
+        age: 25,
+      } as any);
+
+      expect(result.sql).toBe('INSERT INTO user (name, email, age) VALUES (?, ?, ?)');
+      expect(result.params).toEqual(['John', 'john@example.com', 25]);
     });
   });
 }); 

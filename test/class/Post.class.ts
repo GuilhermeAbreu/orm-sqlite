@@ -1,5 +1,6 @@
 import { Column, EntityName, OneToMany } from '../../src/decoratiors/decoratiors.orm';
-import { Comentario } from './Comentario.class';
+
+import type { Comentario } from './Comentario.class';
 
 export interface IPost {
     id: number

@@ -1,3 +1,5 @@
+import { Column, EntityName } from '../src/decoratiors/decoratiors.orm';
+import { OrmSQLiteError } from '../src/errors/orm-sqlite.error';
 
 import { QueryBuildOrmSQlite } from './../src/query/query-build';
 import { Comentario } from './class/Comentario.class';
@@ -170,6 +172,33 @@ describe('QueryBuildOrmSQlite', () => {
         expect(query).toBe(expectedQuery);
     });
 
+    it('should escape single quotes in INSERT values and JSON payload', () => {
+        const queryBuilder = new QueryBuildOrmSQlite<LocalStorage>(LocalStorage);
+        const payload = {
+            text: `He said "ok" and it's fine`,
+            owner: "O'Brian",
+        };
+
+        const query = queryBuilder
+            .insert({ key: "cfg's", value: JSON.stringify(payload) })
+            .replace(/\s{2,}/g, ' ');
+
+        expect(query).toContain("('cfg''s'");
+        expect(query).toContain(`He said \\"ok\\" and it''s fine`);
+        expect(query).toContain(`"owner":"O''Brian"`);
+    });
+
+    it('should escape single quotes in UPDATE values', () => {
+        const queryBuilder = new QueryBuildOrmSQlite<User>(User);
+
+        const query = queryBuilder
+            .where('id', 1)
+            .update({ name: "D'Angelo \"Dev\"" })
+            .replace(/\s{2,}/g, ' ');
+
+        expect(query).toBe(`UPDATE user SET name = 'D''Angelo "Dev"' WHERE id = 1 RETURNING *`);
+    });
+
     it('deve gerar uma consulta SELECT com whereIn', () => {
         const queryBuilder = new QueryBuildOrmSQlite<User>(User);
         
@@ -203,6 +232,193 @@ describe('QueryBuildOrmSQlite', () => {
             .replace(/\s+/g, ' ');
             
         expect(query).toBe("SELECT user.* FROM user WHERE user.name = 'João' OR user.id = 1");
+    });
+
+    it('should block unsafe identifier in whereJoin table alias', () => {
+        const queryBuilder = new QueryBuildOrmSQlite<User>(User);
+
+        try {
+            (queryBuilder as any).whereJoin('posts; DROP TABLE user;--', 'id', 1);
+            throw new Error('expected whereJoin to throw');
+        } catch (error) {
+            expect(error).toBeInstanceOf(OrmSQLiteError);
+            expect((error as OrmSQLiteError).code).toBe('ERR_UNSAFE_IDENTIFIER');
+        }
+    });
+
+    it('should expose stable error code for invalid @Column usage', () => {
+        const queryBuilder = new QueryBuildOrmSQlite<User>(User);
+
+        try {
+            (queryBuilder as any).where('posts', 1);
+            throw new Error('expected where to throw');
+        } catch (error) {
+            expect(error).toBeInstanceOf(OrmSQLiteError);
+            expect((error as OrmSQLiteError).code).toBe('ERR_INVALID_COLUMN');
+        }
+    });
+
+    it('should expose stable error code for unsafe orderBy identifier', () => {
+        const queryBuilder = new QueryBuildOrmSQlite<User>(User);
+
+        try {
+            (queryBuilder as any).orderBy('id; DROP TABLE user;--', 'ASC');
+            throw new Error('expected orderBy to throw');
+        } catch (error) {
+            expect(error).toBeInstanceOf(OrmSQLiteError);
+            expect((error as OrmSQLiteError).code).toBe('ERR_UNSAFE_IDENTIFIER');
+        }
+    });
+
+    it('should expose stable error code when model has no table name metadata', () => {
+        class ModelWithoutEntityName {
+            @Column({ primaryKey: true })
+            id!: number;
+        }
+
+        try {
+            new QueryBuildOrmSQlite(ModelWithoutEntityName as any);
+            throw new Error('expected constructor to throw');
+        } catch (error) {
+            expect(error).toBeInstanceOf(OrmSQLiteError);
+            expect((error as OrmSQLiteError).code).toBe('ERR_TABLE_NAME_NOT_INFORMED');
+        }
+    });
+
+    it('should expose stable error code when updating model without primary key metadata', () => {
+        @EntityName('no_pk_model')
+        class ModelWithoutPrimaryKey {
+            @Column()
+            name!: string;
+        }
+
+        try {
+            new QueryBuildOrmSQlite(ModelWithoutPrimaryKey as any).update({ name: 'test' });
+            throw new Error('expected update to throw');
+        } catch (error) {
+            expect(error).toBeInstanceOf(OrmSQLiteError);
+            expect((error as OrmSQLiteError).code).toBe('ERR_PRIMARY_KEY_NOT_FOUND');
+        }
+    });
+
+    it('should block unsafe identifier in groupBy and expose error code', () => {
+        try {
+            (queryBuilder as any).groupBy('id;DROP TABLE user;--').getQuery();
+            throw new Error('expected groupBy to throw');
+        } catch (error) {
+            expect(error).toBeInstanceOf(OrmSQLiteError);
+            expect((error as OrmSQLiteError).code).toBe('ERR_UNSAFE_IDENTIFIER');
+        }
+    });
+
+    it('should block unsafe identifier in distinct and expose error code', () => {
+        try {
+            (queryBuilder as any).distinct('name;DROP TABLE user;--');
+            throw new Error('expected distinct to throw');
+        } catch (error) {
+            expect(error).toBeInstanceOf(OrmSQLiteError);
+            expect((error as OrmSQLiteError).code).toBe('ERR_UNSAFE_IDENTIFIER');
+        }
+    });
+
+    it('should block unsafe column identifier in addColumn', () => {
+        try {
+            queryBuilder.addColumn({ name: 'x;DROP TABLE user;--' as any, type: 'TEXT' });
+            throw new Error('expected addColumn to throw');
+        } catch (error) {
+            expect(error).toBeInstanceOf(OrmSQLiteError);
+            expect((error as OrmSQLiteError).code).toBe('ERR_UNSAFE_IDENTIFIER');
+        }
+    });
+
+    it('should block unsafe column identifier in dropColumn', () => {
+        try {
+            (queryBuilder as any).dropColumn('id;DROP TABLE user;--');
+            throw new Error('expected dropColumn to throw');
+        } catch (error) {
+            expect(error).toBeInstanceOf(OrmSQLiteError);
+            expect((error as OrmSQLiteError).code).toBe('ERR_UNSAFE_IDENTIFIER');
+        }
+    });
+
+    it('should generate insert without RETURNING when disabled', () => {
+        const sql = queryBuilder.insert([{ name: 'John' }], false).replace(/\s{2,}/g, ' ').trim();
+        expect(sql).toBe("INSERT INTO user (name) VALUES ('John')");
+    });
+
+    it('should generate update without RETURNING when disabled', () => {
+        const sql = queryBuilder.where('id', 1).update({ name: 'John' }, false).replace(/\s{2,}/g, ' ').trim();
+        expect(sql).toBe("UPDATE user SET name = 'John' WHERE id = 1");
+    });
+
+    it('should generate parameterized insert query', () => {
+        const result = queryBuilder.insertWithParams([{ name: 'John', age: 30 } as any], false);
+        expect(result.sql).toBe('INSERT INTO user (name, age) VALUES (?, ?)');
+        expect(result.params).toEqual(['John', 30]);
+    });
+
+    it('should generate parameterized update query', () => {
+        const result = queryBuilder.where('id', 1).updateWithParams({ name: 'John' } as any, false);
+        expect(result.sql).toBe('UPDATE user SET name = ? WHERE id = ?');
+        expect(result.params).toEqual(['John', 1]);
+    });
+
+    it('should generate parameterized select query for where and whereJoin', () => {
+        const qbAny: any = queryBuilder;
+        const result = qbAny
+            .where('id', 1)
+            .whereJoin('user', 'name', 'John')
+            .getQueryWithParams();
+
+        expect(result.sql).toContain('user.id = ?');
+        expect(result.sql).toContain('user.name = ?');
+        expect(result.params).toEqual([1, 'John']);
+    });
+
+    it('should generate parameterized query for whereIn and orIn preserving params order', () => {
+        const result = queryBuilder
+            .where('name', 'John')
+            .whereIn('id', [1, 2])
+            .orIn('age', [30, 40] as any)
+            .getQueryWithParams();
+
+        expect(result.sql).toContain('user.name = ?');
+        expect(result.sql).toContain('user.id IN (?,?)');
+        expect(result.sql).toContain('user.age IN (?,?)');
+        expect(result.params).toEqual(['John', 1, 2, 30, 40]);
+    });
+
+    it('should keep semantic parity between getQuery and getQueryWithParams', () => {
+        const literalSql = queryBuilder
+            .where('name', 'John')
+            .whereIn('id', [1, 2, 3])
+            .orderBy('id', 'DESC')
+            .limit(5)
+            .getQuery()
+            .replace(/\s+/g, ' ');
+
+        const parameterized = queryBuilder.getQueryWithParams();
+        const parameterizedSql = parameterized.sql.replace(/\s+/g, ' ');
+
+        expect(literalSql).toContain('WHERE user.name = \'John\'');
+        expect(literalSql).toContain('user.id IN (1,2,3)');
+        expect(parameterizedSql).toContain('WHERE user.name = ?');
+        expect(parameterizedSql).toContain('user.id IN (?,?,?)');
+        expect(parameterizedSql).toContain('ORDER BY user.id DESC');
+        expect(parameterizedSql).toContain('LIMIT 5');
+        expect(parameterized.params).toEqual(['John', 1, 2, 3]);
+    });
+
+    it('should preserve date formatting in getQueryWithParams', () => {
+        const date = new Date('2025-01-01T10:30:00.000Z');
+        const result = queryBuilder
+            .where('createdAt', date as any)
+            .getQueryWithParams();
+
+        expect(result.sql).toContain('user.createdAt = ?');
+        expect(result.params).toHaveLength(1);
+        expect(typeof result.params[0]).toBe('string');
+        expect(result.params[0]).toContain('2025-01-01');
     });
 
 });

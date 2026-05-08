@@ -1,3 +1,5 @@
+import { OrmSQLiteError } from '../errors/orm-sqlite.error';
+
 import type { IModelClassOrmSQlite, JoinOption, OrderByDirection, QueryOptions, WhereCondition } from './query-build.definitions';
 
 /**
@@ -22,17 +24,35 @@ export class QueryBuildSQlite<T = any> {
         this.classModel;
     }
 
+    private assertSafeIdentifier(identifier: string, fieldName: string): void {
+        if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(identifier)) {
+            throw new OrmSQLiteError(
+                'ERR_UNSAFE_IDENTIFIER',
+                `Unsafe SQL identifier for ${fieldName}: '${identifier}'`
+            );
+        }
+    }
+
     private getTableName(modelClass: IModelClassOrmSQlite<any>): string {
         const className = modelClass.entityName;
         if (!className) {
-            throw new Error('Nome da tabela não informada ' + modelClass);
+            throw new OrmSQLiteError(
+                'ERR_TABLE_NAME_NOT_INFORMED',
+                'Nome da tabela não informada ' + modelClass
+            );
         }
-        return className.replace(/([a-z])([A-Z])/g, '$1_$2').toLowerCase();
+        const tableName = className.replace(/([a-z])([A-Z])/g, '$1_$2').toLowerCase();
+        this.assertSafeIdentifier(tableName, 'table');
+        return tableName;
     }
 
     findMany(options?: QueryOptions<T, any>): string {
         this.currentOperation = 'SELECT';
-        this.selectColumns = options?.select?.map(col => `${this.tableName}.${String(col)}`) || ['*'];
+        this.selectColumns = options?.select?.map(col => {
+            const column = String(col);
+            this.assertSafeIdentifier(column, 'select column');
+            return `${this.tableName}.${column}`;
+        }) || ['*'];
         this.processWhere(options?.where);
         if (options?.or) {
             this.processOr(options.or);
@@ -61,6 +81,7 @@ export class QueryBuildSQlite<T = any> {
                         });
                         return conditions.join(' AND ');
                     }
+                    this.assertSafeIdentifier(key, 'where column');
                     return `${this.tableName}.${key} = ${this.formatValue(value)}`;
                 });
                 return `(${conditions.join(' AND ')})`;
@@ -76,6 +97,7 @@ export class QueryBuildSQlite<T = any> {
                 });
                 return conditions.join(' AND ');
             }
+            this.assertSafeIdentifier(key, 'where column');
             return `${this.tableName}.${key} = ${this.formatValue(value)}`;
         });
 
@@ -91,6 +113,7 @@ export class QueryBuildSQlite<T = any> {
                     const operatorValue = (value as any)[operator];
                     return this.buildWhereCondition(key, operator, operatorValue);
                 }
+                this.assertSafeIdentifier(key, 'or column');
                 return `${this.tableName}.${key} = ${this.formatValue(value)}`;
             });
             return `(${conditions.join(' AND ')})`;
@@ -102,7 +125,10 @@ export class QueryBuildSQlite<T = any> {
         if (!orderBy) return;
 
         const orders = Object.entries(orderBy).map(
-            ([key, direction]) => `${this.tableName}.${key} ${(direction as OrderByDirection).toUpperCase()}`
+            ([key, direction]) => {
+                this.assertSafeIdentifier(key, 'orderBy column');
+                return `${this.tableName}.${key} ${(direction as OrderByDirection).toUpperCase()}`;
+            }
         );
         this.orderByClause.push(...orders);
     }
@@ -118,7 +144,11 @@ export class QueryBuildSQlite<T = any> {
 
     private processGroupBy(groupBy?: (keyof T)[]): void {
         if (!groupBy) return;
-        this.selectColumns = groupBy.map(col => `${this.tableName}.${String(col)}`);
+        this.selectColumns = groupBy.map(col => {
+            const column = String(col);
+            this.assertSafeIdentifier(column, 'groupBy column');
+            return `${this.tableName}.${column}`;
+        });
     }
 
     private processHaving(having?: WhereCondition<T>): void {
@@ -141,8 +171,10 @@ export class QueryBuildSQlite<T = any> {
                     if (typeof value === 'object' && value !== null) {
                         const operator = Object.keys(value)[0];
                         const operatorValue = (value as any)[operator];
+                        this.assertSafeIdentifier(key, 'join on column');
                         return `${joinTableName}.${key} ${this.getSQLOperator(operator)} ${this.formatValue(operatorValue)}`;
                     }
+                    this.assertSafeIdentifier(key, 'join on column');
                     return `${joinTableName}.${key} = ${this.formatValue(value)}`;
                 });
                 onClause = onConditions.join(' AND ');
@@ -171,8 +203,10 @@ export class QueryBuildSQlite<T = any> {
                     if (typeof value === 'object' && value !== null) {
                         const operator = Object.keys(value)[0];
                         const operatorValue = (value as any)[operator];
+                        this.assertSafeIdentifier(key, 'nested join on column');
                         return `${joinTableName}.${key} ${this.getSQLOperator(operator)} ${this.formatValue(operatorValue)}`;
                     }
+                    this.assertSafeIdentifier(key, 'nested join on column');
                     return `${joinTableName}.${key} = ${this.formatValue(value)}`;
                 });
                 onClause = onConditions.join(' AND ');
@@ -199,6 +233,7 @@ export class QueryBuildSQlite<T = any> {
     }
 
     private buildWhereCondition(key: string, operator: string, value: any): string {
+        this.assertSafeIdentifier(key, 'where column');
         const column = `${this.tableName}.${key}`;
         let values: any[];
         
@@ -225,7 +260,7 @@ export class QueryBuildSQlite<T = any> {
 
     private formatValue(value: any): string {
         if (value === null || value === undefined) return 'NULL';
-        if (typeof value === 'string') return `'${value.replace(/'/g, "''")}'`;
+        if (typeof value === 'string') return `'${this.escapeSqlString(value)}'`;
         if (value instanceof Date) {
             const date = new Date(value);
             return `'${date.toISOString()}'`;
@@ -233,14 +268,19 @@ export class QueryBuildSQlite<T = any> {
         if (Array.isArray(value)) {
             return `(${value.map(v => this.formatValue(v)).join(', ')})`;
         }
-        if (typeof value === 'object') return `'${JSON.stringify(value)}'`;
+        if (typeof value === 'object') return `'${this.escapeSqlString(JSON.stringify(value))}'`;
         return String(value);
+    }
+
+    private escapeSqlString(value: string): string {
+        return value.replace(/'/g, "''");
     }
 
     insert(data: Partial<T> | Partial<T>[]): string {
         this.currentOperation = 'INSERT';
         const values = Array.isArray(data) ? data : [data];
         const columns = Object.keys(values[0]);
+        columns.forEach(column => this.assertSafeIdentifier(column, 'insert column'));
         const valuesList = values.map(row =>
             `(${columns.map(col => this.formatValue((row as any)[col])).join(', ')})`
         ).join(', ');
@@ -249,13 +289,52 @@ export class QueryBuildSQlite<T = any> {
         return this.toString();
     }
 
+    insertWithParams(data: Partial<T> | Partial<T>[]): { sql: string; params: any[] } {
+        const values = Array.isArray(data) ? data : [data];
+        const columns = Object.keys(values[0]);
+        columns.forEach(col => this.assertSafeIdentifier(col, 'insert column'));
+        const params: any[] = [];
+        const placeholders = values.map(row => {
+            const rowPlaceholders = columns.map(col => {
+                params.push(this.toParamValue((row as any)[col]));
+                return '?';
+            }).join(', ');
+            return `(${rowPlaceholders})`;
+        }).join(', ');
+
+        return {
+            sql: `INSERT INTO ${this.tableName} (${columns.join(', ')}) VALUES ${placeholders}`,
+            params,
+        };
+    }
+
     update(data: Partial<T>): string {
         this.currentOperation = 'UPDATE';
         const setClause = Object.entries(data)
-            .map(([key, value]) => `${this.tableName}.${key} = ${this.formatValue(value)}`)
+            .map(([key, value]) => {
+                this.assertSafeIdentifier(key, 'update column');
+                return `${this.tableName}.${key} = ${this.formatValue(value)}`;
+            })
             .join(', ');
         this.selectColumns = [setClause];
         return this.toString();
+    }
+
+    updateWithParams(data: Partial<T>): { sql: string; params: any[] } {
+        const params: any[] = [];
+        const setClause = Object.entries(data)
+            .map(([key, value]) => {
+                this.assertSafeIdentifier(key, 'update column');
+                params.push(this.toParamValue(value));
+                return `${this.tableName}.${key} = ?`;
+            })
+            .join(', ');
+
+        const whereClause = this.conditions.length ? ` WHERE ${this.conditions.join(' AND ')}` : '';
+        return {
+            sql: `UPDATE ${this.tableName} SET ${setClause}${whereClause}`,
+            params,
+        };
     }
 
     delete(options?: QueryOptions<T>): string {
@@ -300,5 +379,12 @@ export class QueryBuildSQlite<T = any> {
             default:
                 return '';
         }
+    }
+
+    private toParamValue(value: any): any {
+        if (value === undefined) return null;
+        if (value instanceof Date) return value.toISOString();
+        if (typeof value === 'object' && value !== null) return JSON.stringify(value);
+        return value;
     }
 }

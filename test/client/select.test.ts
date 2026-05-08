@@ -1,3 +1,4 @@
+import { OrmSQLiteError } from '../../src/errors/orm-sqlite.error';
 import { QueryBuildSQlite } from '../../src/query/query-build-sqlite';
 import { User } from '../class/User.class';
 
@@ -113,6 +114,58 @@ describe('NewQueryBuilder - SELECT Operations', () => {
         "SELECT * FROM user WHERE (user.name = 'João' AND user.age = 20) OR (user.name = 'Maria')"
       );
     });
+
+    it('should block unsafe identifiers in WHERE clauses', () => {
+      try {
+        queryBuilder.findMany({
+          where: {
+            ['name; DROP TABLE user;--' as any]: 'John',
+          } as any,
+        });
+        throw new Error('expected findMany to throw');
+      } catch (error) {
+        expect(error).toBeInstanceOf(OrmSQLiteError);
+        expect((error as OrmSQLiteError).code).toBe('ERR_UNSAFE_IDENTIFIER');
+      }
+    });
+
+    it('should expose ERR_UNSAFE_IDENTIFIER for unsafe select column', () => {
+      try {
+        queryBuilder.findMany({
+          select: ['name;DROP TABLE user;--' as any],
+        });
+        throw new Error('expected findMany to throw');
+      } catch (error) {
+        expect(error).toBeInstanceOf(OrmSQLiteError);
+        expect((error as OrmSQLiteError).code).toBe('ERR_UNSAFE_IDENTIFIER');
+      }
+    });
+
+    it('should expose ERR_UNSAFE_IDENTIFIER for unsafe orderBy column', () => {
+      try {
+        queryBuilder.findMany({
+          orderBy: {
+            ['name;DROP TABLE user;--' as any]: 'asc',
+          } as any,
+        });
+        throw new Error('expected findMany to throw');
+      } catch (error) {
+        expect(error).toBeInstanceOf(OrmSQLiteError);
+        expect((error as OrmSQLiteError).code).toBe('ERR_UNSAFE_IDENTIFIER');
+      }
+    });
+
+    it('should expose ERR_UNSAFE_IDENTIFIER for unsafe groupBy column', () => {
+      try {
+        queryBuilder.findMany({
+          groupBy: ['name;DROP TABLE user;--' as any],
+        });
+        throw new Error('expected findMany to throw');
+      } catch (error) {
+        expect(error).toBeInstanceOf(OrmSQLiteError);
+        expect((error as OrmSQLiteError).code).toBe('ERR_UNSAFE_IDENTIFIER');
+      }
+    });
   });
 
   describe('findFirst', () => {
@@ -142,6 +195,22 @@ describe('NewQueryBuilder - SELECT Operations', () => {
       }).toString();
 
       expect(sql).toBe('SELECT * FROM user WHERE user.age > 18 ORDER BY user.name DESC LIMIT 1');
+    });
+  });
+
+  describe('constructor safety', () => {
+    it('should expose ERR_TABLE_NAME_NOT_INFORMED for model without entityName', () => {
+      class ModelWithoutEntityName {
+        id!: number;
+      }
+
+      try {
+        new QueryBuildSQlite(ModelWithoutEntityName as any);
+        throw new Error('expected constructor to throw');
+      } catch (error) {
+        expect(error).toBeInstanceOf(OrmSQLiteError);
+        expect((error as OrmSQLiteError).code).toBe('ERR_TABLE_NAME_NOT_INFORMED');
+      }
     });
   });
 }); 
