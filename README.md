@@ -1,6 +1,8 @@
 markdown
 
 # ORM SQLite para Capacitor
+[![CI](https://github.com/GuilhermeAbreu/orm-sqlite/actions/workflows/ci.yml/badge.svg)](https://github.com/GuilhermeAbreu/orm-sqlite/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/coverage-jest-blue)](#)
 
 Este projeto é uma biblioteca ORM SQLite para uso com Capacitor, facilitando a integração e manipulação de bancos de dados SQLite em aplicativos móveis.
 
@@ -13,6 +15,23 @@ Para instalar o pacote `@guilhermeabreudev/capacitor-orm-sqlite`, execute o segu
 ```bash
 npm install @guilhermeabreudev/capacitor-orm-sqlite
 ```
+
+Validação local completa:
+
+```bash
+npm run ci
+```
+
+## Nomenclatura recomendada (compatível com legado)
+
+A biblioteca mantém nomes legados por compatibilidade, mas a recomendação para novos projetos é usar os aliases com grafia corrigida:
+
+- `DatabaseConnectionOrmSQLite` (recomendado) e `DatabaseConnectionOrmSQlite` (legado)
+- `QueryBuildOrmSQLite` (recomendado) e `QueryBuildOrmSQlite` (legado)
+- `QueryBuildSQLite` (recomendado) e `QueryBuildSQlite` (legado)
+
+Os dois formatos funcionam atualmente.
+
 Configuração
 1. Adicionar o capacitor-orm-sqlite ao Projeto
 Adicione o capacitor-orm-sqlite ao seu projeto Capacitor. Certifique-se de que o capacitor-orm-sqlite está registrado corretamente.
@@ -24,7 +43,7 @@ Criação da conexão apenas uma única vez no arquivo inicial do seu projeto.
 
 Angular: app-component.ts
 ```typescript
-new DatabaseConnectionOrmSQlite(
+new DatabaseConnectionOrmSQLite(
     new SQLiteConnection(CapacitorSQLite),
     'Nome do banco',
     'tipo de criptografia',
@@ -110,34 +129,35 @@ export class Carro implements ICarro { // class modelo
 
 }
 
-import { DatabaseConnectionOrmSQlite, QueryBuildOrmSQlite } from '@guilhermeabreudev/capacitor-orm-sqlite';
+import { DatabaseConnectionOrmSQLite, QueryBuildOrmSQLite } from '@guilhermeabreudev/capacitor-orm-sqlite';
 
 
 class ControladorClienteRepositorio  {
     public async salvar(clientes: Cliente | Cliente[]): Promise<Cliente[]> {
-        return await DatabaseConnectionOrmSQlite.query(
-        new QueryBuildOrmSQlite(Cliente)
-        .insert(clientes)
-        )
+        const query = new QueryBuildOrmSQLite(Cliente).insertWithParams(clientes);
+        return await DatabaseConnectionOrmSQLite.executeWithParams(query.sql, query.params)
     }
 
     public async listarTodos(): Promise<Cliente[]> {
-        const clientes = await DatabaseConnectionOrmSQlite.query<ICliente>(new QueryBuildOrmSQlite(Cliente).getQuery())
+        const query = new QueryBuildOrmSQLite(Cliente).getQueryWithParams();
+        const clientes = await DatabaseConnectionOrmSQLite.queryWithParams<ICliente>(query.sql, query.params)
 
         return clientes.map(cliente => new Cliente(cliente))
     }
 
     public async listarComCarros(id: number): Promise<Cliente[]> {
-        
-    const clientesComCarros = await DatabaseConnectionOrmSQlite.query<ICliente>(
-        new QueryBuildOrmSQlite(Cliente)
-        .leftJoin(Carro, 'id', 'id_cliente', 'carros');
-        .where('id', id);
-        .getQuery()
-    )
+      const query = new QueryBuildOrmSQLite(Cliente)
+        .leftJoin(Carro, 'id', 'id_cliente', 'carros')
+        .where('id', id)
+        .getQueryWithParams();
 
-    return clientesComCarros.map(cliente => new Cliente(cliente))
-  }
+      const clientesComCarros = await DatabaseConnectionOrmSQLite.queryWithParams<ICliente>(
+        query.sql,
+        query.params
+      );
+
+      return clientesComCarros.map(cliente => new Cliente(cliente))
+    }
 }
 
 ```
@@ -146,9 +166,54 @@ Lembrando que a tipagem e dinâmica logo, ao inserir a class o capacitor-orm-sql
 
 Também e possível realizar migrações do banco com o tipo IMigrationDatabaseOrmSQLite
 
-``DatabaseConnectionOrmSQlite.runMigrationsIfNeeded(MigrationDb)``
+``DatabaseConnectionOrmSQLite.runMigrationsIfNeeded(MigrationDb)``
 
 Veja tudo em (https://github.com/GuilhermeAbreu/orm-sqlite/tree/main/docs)
+
+Guia de troubleshooting:
+- `docs/TROUBLESHOOTING.md`
+- `docs/UPGRADE.md`
+
+## Códigos de erro (`OrmSQLiteError`)
+
+A biblioteca expõe erros padronizados com a classe `OrmSQLiteError` e a propriedade `code`, para facilitar tratamento no app.
+
+| code | Quando acontece |
+| --- | --- |
+| `ERR_SQLITE_NOT_CONFIGURED` | Conexão SQLite não foi inicializada antes de executar query/execute |
+| `ERR_DATABASE_NAME_NOT_CONFIGURED` | Nome do banco não foi configurado |
+| `ERR_INVALID_CONFIG` | Configuração inválida de conexão (ex.: `mode` ou `version`) |
+| `ERR_EMPTY_SQL` | SQL vazio foi enviado para `query`/`execute` |
+| `ERR_INVALID_MIGRATIONS` | Migrations vazias, duplicadas ou fora de ordem |
+| `ERR_MIGRATION_NOT_FOUND` | Versão de migration esperada não existe na lista |
+| `ERR_UNSAFE_IDENTIFIER` | Nome de tabela/coluna/índice inválido ou inseguro |
+| `ERR_INVALID_COLUMN` | Coluna usada sem decorator `@Column` |
+| `ERR_TABLE_NAME_NOT_INFORMED` | Classe de modelo sem `@EntityName` ou `entityName` |
+| `ERR_PRIMARY_KEY_NOT_FOUND` | Operação que exige chave primária em modelo sem coluna `primaryKey` |
+
+Exemplo de tratamento:
+
+```typescript
+import { OrmSQLiteError } from '@guilhermeabreudev/capacitor-orm-sqlite';
+
+try {
+  await DatabaseConnectionOrmSQLite.executeWithParams('SELECT * FROM user WHERE id = ?', [1]);
+} catch (error) {
+  if (error instanceof OrmSQLiteError) {
+    switch (error.code) {
+      case 'ERR_EMPTY_SQL':
+        // informar ao usuário ou corrigir fluxo de geração da query
+        break;
+      case 'ERR_INVALID_MIGRATIONS':
+        // bloquear startup e logar configuração de migrations
+        break;
+      default:
+        // fallback para observabilidade
+        break;
+    }
+  }
+}
+```
 
 # Contribuição
 Se você deseja contribuir para este projeto, por favor siga os seguintes passos:
@@ -167,8 +232,3 @@ Abra um Pull Request para revisão.
 # Licença
 Este projeto está licenciado sob a Licença MIT.
 Se precisar de mais ajustes ou detalhes, sinta-se à vontade para pedir!
-
-
-
-
-

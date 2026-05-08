@@ -23,8 +23,11 @@ npx cap sync
 * [`join(...)`](#join)
 * [`leftJoin(...)`](#leftjoin)
 * [`getQuery()`](#getquery)
+* [`getQueryWithParams()`](#getquerywithparams)
 * [`insert(...)`](#insert)
+* [`insertWithParams(...)`](#insertwithparams)
 * [`update(...)`](#update)
+* [`updateWithParams(...)`](#updatewithparams)
 * [`delete()`](#delete)
 * [`createTable(...)`](#createtable)
 * [`addColumn(...)`](#addcolumn)
@@ -205,6 +208,17 @@ getQuery() => string
 --------------------
 
 
+### getQueryWithParams()
+
+```typescript
+getQueryWithParams() => IParameterizedQueryOrmSQLite
+```
+
+**Returns:** <code><a href="#iparameterizedqueryormsqlite">IParameterizedQueryOrmSQLite</a></code>
+
+--------------------
+
+
 ### insert(...)
 
 ```typescript
@@ -221,6 +235,22 @@ insert(values: Partial<T> | Partial<T>[], returnValues?: boolean | undefined) =>
 --------------------
 
 
+### insertWithParams(...)
+
+```typescript
+insertWithParams(values: Partial<T> | Partial<T>[], returnValues?: boolean | undefined) => IParameterizedQueryOrmSQLite
+```
+
+| Param              | Type                                                                                              |
+| ------------------ | ------------------------------------------------------------------------------------------------- |
+| **`values`**       | <code><a href="#partial">Partial</a>&lt;T&gt; \| <a href="#partial">Partial</a>&lt;T&gt;[]</code> |
+| **`returnValues`** | <code>boolean</code>                                                                              |
+
+**Returns:** <code><a href="#iparameterizedqueryormsqlite">IParameterizedQueryOrmSQLite</a></code>
+
+--------------------
+
+
 ### update(...)
 
 ```typescript
@@ -233,6 +263,22 @@ update(values: Partial<T>, returnValues?: boolean | undefined) => string
 | **`returnValues`** | <code>boolean</code>                                 |
 
 **Returns:** <code>string</code>
+
+--------------------
+
+
+### updateWithParams(...)
+
+```typescript
+updateWithParams(values: Partial<T>, returnValues?: boolean | undefined) => IParameterizedQueryOrmSQLite
+```
+
+| Param              | Type                                                 |
+| ------------------ | ---------------------------------------------------- |
+| **`values`**       | <code><a href="#partial">Partial</a>&lt;T&gt;</code> |
+| **`returnValues`** | <code>boolean</code>                                 |
+
+**Returns:** <code><a href="#iparameterizedqueryormsqlite">IParameterizedQueryOrmSQLite</a></code>
 
 --------------------
 
@@ -382,12 +428,20 @@ distinct<K extends keyof T, U>(asOrColumn: K, columnCaseJoin?: keyof U | undefin
 | **`entityName`** | <code>string</code> |
 
 
+#### IParameterizedQueryOrmSQLite
+
+| Prop         | Type                |
+| ------------ | ------------------- |
+| **`sql`**    | <code>string</code> |
+| **`params`** | <code>any[]</code>  |
+
+
 ### Type Aliases
 
 
 #### ITypeOrderBySql
 
-<code>'ASC' | "DESC"</code>
+<code>'ASC' | 'DESC'</code>
 
 
 #### Partial

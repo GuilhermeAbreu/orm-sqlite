@@ -1,3 +1,4 @@
+import { OrmSQLiteError } from '../../src/errors/orm-sqlite.error';
 import { QueryBuildSQlite } from '../../src/query/query-build-sqlite';
 import { User } from '../class/User.class';
 
@@ -15,24 +16,28 @@ describe('NewQueryBuilder - SELECT Operations', () => {
     });
 
     it('should generate query with WHERE conditions', () => {
-      const sql = queryBuilder.findMany({
-        where: {
-          name: 'John',
-          age: 25
-        }
-      }).toString();
+      const sql = queryBuilder
+        .findMany({
+          where: {
+            name: 'John',
+            age: 25
+          }
+        })
+        .toString();
 
       expect(sql).toBe("SELECT * FROM user WHERE user.name = 'John' AND user.age = 25");
     });
 
     it('should generate query with complex WHERE conditions', () => {
-      const sql = queryBuilder.findMany({
-        where: {
-          age: { gt: 18 },
-          name: { not: 'John' },
-          email: { in: ['john@example.com', 'jane@example.com'] }
-        }
-      }).toString();
+      const sql = queryBuilder
+        .findMany({
+          where: {
+            age: { gt: 18 },
+            name: { not: 'John' },
+            email: { in: ['john@example.com', 'jane@example.com'] }
+          }
+        })
+        .toString();
 
       expect(sql).toBe(
         "SELECT * FROM user WHERE user.age > 18 AND user.name != 'John' AND user.email IN ('john@example.com', 'jane@example.com')"
@@ -40,51 +45,56 @@ describe('NewQueryBuilder - SELECT Operations', () => {
     });
 
     it('should generate query with ORDER BY', () => {
-      const sql = queryBuilder.findMany({
-        orderBy: {
-          name: 'asc',
-          age: 'desc'
-        }
-      }).toString();
+      const sql = queryBuilder
+        .findMany({
+          orderBy: {
+            name: 'asc',
+            age: 'desc'
+          }
+        })
+        .toString();
 
       expect(sql).toBe('SELECT * FROM user ORDER BY user.name ASC, user.age DESC');
     });
 
     it('should generate query with LIMIT and OFFSET', () => {
-      const sql = queryBuilder.findMany({
-        take: 10,
-        skip: 20
-      }).toString();
+      const sql = queryBuilder
+        .findMany({
+          take: 10,
+          skip: 20
+        })
+        .toString();
 
       expect(sql).toBe('SELECT * FROM user LIMIT 10 OFFSET 20');
     });
 
     it('should generate query with all options', () => {
-      const sql = queryBuilder.findMany({
-        where: {
-          age: { gt: 18 },
-          name: 'John'
-        },
-        take: 10,
-        skip: 0,
-        orderBy: {
-          name: 'asc'
-        },
-        
-      }).toString();
+      const sql = queryBuilder
+        .findMany({
+          where: {
+            age: { gt: 18 },
+            name: 'John'
+          },
+          take: 10,
+          skip: 0,
+          orderBy: {
+            name: 'asc'
+          }
+        })
+        .toString();
 
-      expect(sql).toBe(
-        "SELECT * FROM user WHERE user.age > 18 AND user.name = 'John' ORDER BY user.name ASC LIMIT 10 OFFSET 0"
-      );
+      expect(sql).toBe("SELECT * FROM user WHERE user.age > 18 AND user.name = 'John' ORDER BY user.name ASC LIMIT 10 OFFSET 0");
     });
 
     it('should handle null values in WHERE conditions', () => {
-      const sql = queryBuilder.findMany({
-        where: {
-          name: null,
-          email: undefined
-        }
-      }).toString();
+      const sql = queryBuilder
+        .findMany({
+          where: {
+            name: null,
+            email: undefined
+          }
+        })
+        .toString();
 
       expect(sql).toBe('SELECT * FROM user WHERE user.name = NULL AND user.email = NULL');
     });
@@ -103,15 +113,64 @@ describe('NewQueryBuilder - SELECT Operations', () => {
     });
 
     it('should generate query with OR conditions when where is an array', () => {
-      const sql = queryBuilder.findMany({
-        or: [
-          { name: 'João', age: 20 },
-          { name: 'Maria' }
-        ]
-      }).toString();
-      expect(sql).toBe(
-        "SELECT * FROM user WHERE (user.name = 'João' AND user.age = 20) OR (user.name = 'Maria')"
-      );
+      const sql = queryBuilder
+        .findMany({
+          or: [{ name: 'João', age: 20 }, { name: 'Maria' }]
+        })
+        .toString();
+      expect(sql).toBe("SELECT * FROM user WHERE (user.name = 'João' AND user.age = 20) OR (user.name = 'Maria')");
+    });
+
+    it('should block unsafe identifiers in WHERE clauses', () => {
+      try {
+        queryBuilder.findMany({
+          where: {
+            ['name; DROP TABLE user;--' as any]: 'John'
+          } as any
+        });
+        throw new Error('expected findMany to throw');
+      } catch (error) {
+        expect(error).toBeInstanceOf(OrmSQLiteError);
+        expect((error as OrmSQLiteError).code).toBe('ERR_UNSAFE_IDENTIFIER');
+      }
+    });
+
+    it('should expose ERR_UNSAFE_IDENTIFIER for unsafe select column', () => {
+      try {
+        queryBuilder.findMany({
+          select: ['name;DROP TABLE user;--' as any]
+        });
+        throw new Error('expected findMany to throw');
+      } catch (error) {
+        expect(error).toBeInstanceOf(OrmSQLiteError);
+        expect((error as OrmSQLiteError).code).toBe('ERR_UNSAFE_IDENTIFIER');
+      }
+    });
+
+    it('should expose ERR_UNSAFE_IDENTIFIER for unsafe orderBy column', () => {
+      try {
+        queryBuilder.findMany({
+          orderBy: {
+            ['name;DROP TABLE user;--' as any]: 'asc'
+          } as any
+        });
+        throw new Error('expected findMany to throw');
+      } catch (error) {
+        expect(error).toBeInstanceOf(OrmSQLiteError);
+        expect((error as OrmSQLiteError).code).toBe('ERR_UNSAFE_IDENTIFIER');
+      }
+    });
+
+    it('should expose ERR_UNSAFE_IDENTIFIER for unsafe groupBy column', () => {
+      try {
+        queryBuilder.findMany({
+          groupBy: ['name;DROP TABLE user;--' as any]
+        });
+        throw new Error('expected findMany to throw');
+      } catch (error) {
+        expect(error).toBeInstanceOf(OrmSQLiteError);
+        expect((error as OrmSQLiteError).code).toBe('ERR_UNSAFE_IDENTIFIER');
+      }
     });
   });
 
@@ -122,26 +181,46 @@ describe('NewQueryBuilder - SELECT Operations', () => {
     });
 
     it('should generate query with WHERE conditions and LIMIT 1', () => {
-      const sql = queryBuilder.findFirst({
-        where: {
-          name: 'John'
-        }
-      }).toString();
+      const sql = queryBuilder
+        .findFirst({
+          where: {
+            name: 'John'
+          }
+        })
+        .toString();
 
       expect(sql).toBe("SELECT * FROM user WHERE user.name = 'John' LIMIT 1");
     });
 
     it('should generate query with all options and LIMIT 1', () => {
-      const sql = queryBuilder.findFirst({
-        where: {
-          age: { gt: 18 }
-        },
-        orderBy: {
-          name: 'desc'
-        }
-      }).toString();
+      const sql = queryBuilder
+        .findFirst({
+          where: {
+            age: { gt: 18 }
+          },
+          orderBy: {
+            name: 'desc'
+          }
+        })
+        .toString();
 
       expect(sql).toBe('SELECT * FROM user WHERE user.age > 18 ORDER BY user.name DESC LIMIT 1');
     });
   });
-}); 
+
+  describe('constructor safety', () => {
+    it('should expose ERR_TABLE_NAME_NOT_INFORMED for model without entityName', () => {
+      class ModelWithoutEntityName {
+        id!: number;
+      }
+
+      try {
+        new QueryBuildSQlite(ModelWithoutEntityName as any);
+        throw new Error('expected constructor to throw');
+      } catch (error) {
+        expect(error).toBeInstanceOf(OrmSQLiteError);
+        expect((error as OrmSQLiteError).code).toBe('ERR_TABLE_NAME_NOT_INFORMED');
+      }
+    });
+  });
+});

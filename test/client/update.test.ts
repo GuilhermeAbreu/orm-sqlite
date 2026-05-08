@@ -1,3 +1,4 @@
+import { OrmSQLiteError } from '../../src/errors/orm-sqlite.error';
 import { QueryBuildSQlite } from '../../src/query/query-build-sqlite';
 import { User } from '../class/User.class';
 
@@ -17,9 +18,7 @@ describe('NewQueryBuilder - UPDATE Operations', () => {
       };
 
       const sql = queryBuilder.update(data).toString();
-      expect(sql).toBe(
-        "UPDATE user SET user.name = 'John', user.email = 'john@example.com', user.age = 25"
-      );
+      expect(sql).toBe("UPDATE user SET user.name = 'John', user.email = 'john@example.com', user.age = 25");
     });
 
     it('should generate UPDATE query with WHERE conditions', () => {
@@ -35,9 +34,7 @@ describe('NewQueryBuilder - UPDATE Operations', () => {
       });
 
       const sql = queryBuilder.update(data).toString();
-      expect(sql).toBe(
-        "UPDATE user SET user.name = 'John', user.email = 'john@example.com' WHERE user.id = 1"
-      );
+      expect(sql).toBe("UPDATE user SET user.name = 'John', user.email = 'john@example.com' WHERE user.id = 1");
     });
 
     it('should handle null values', () => {
@@ -48,9 +45,7 @@ describe('NewQueryBuilder - UPDATE Operations', () => {
       };
 
       const sql = queryBuilder.update(data).toString();
-      expect(sql).toBe(
-        "UPDATE user SET user.name = 'John', user.email = NULL, user.age = NULL"
-      );
+      expect(sql).toBe("UPDATE user SET user.name = 'John', user.email = NULL, user.age = NULL");
     });
 
     it('should handle date values', () => {
@@ -61,9 +56,7 @@ describe('NewQueryBuilder - UPDATE Operations', () => {
       };
 
       const sql = queryBuilder.update(data).toString();
-      expect(sql).toBe(
-        `UPDATE user SET user.name = 'John', user.createdAt = '${date.toISOString()}'`
-      );
+      expect(sql).toBe(`UPDATE user SET user.name = 'John', user.createdAt = '${date.toISOString()}'`);
     });
 
     it('should handle object values', () => {
@@ -73,9 +66,7 @@ describe('NewQueryBuilder - UPDATE Operations', () => {
       };
 
       const sql = queryBuilder.update(data).toString();
-      expect(sql).toBe(
-        "UPDATE user SET user.name = 'John', user.metadata = '{\"role\":\"admin\",\"active\":true}'"
-      );
+      expect(sql).toBe('UPDATE user SET user.name = \'John\', user.metadata = \'{"role":"admin","active":true}\'');
     });
 
     it('should handle special characters in strings', () => {
@@ -85,9 +76,7 @@ describe('NewQueryBuilder - UPDATE Operations', () => {
       };
 
       const sql = queryBuilder.update(data).toString();
-      expect(sql).toBe(
-        "UPDATE user SET user.name = 'John O''Connor', user.email = 'john.o''connor@example.com'"
-      );
+      expect(sql).toBe("UPDATE user SET user.name = 'John O''Connor', user.email = 'john.o''connor@example.com'");
     });
 
     it('should handle complex WHERE conditions', () => {
@@ -103,9 +92,29 @@ describe('NewQueryBuilder - UPDATE Operations', () => {
       });
 
       const sql = queryBuilder.update(data).toString();
-      expect(sql).toBe(
-        "UPDATE user SET user.name = 'John' WHERE user.age > 18 AND user.email IN ('john@example.com', 'jane@example.com')"
-      );
+      expect(sql).toBe("UPDATE user SET user.name = 'John' WHERE user.age > 18 AND user.email IN ('john@example.com', 'jane@example.com')");
+    });
+
+    it('should expose ERR_UNSAFE_IDENTIFIER for unsafe update column', () => {
+      try {
+        queryBuilder.update({
+          ['name;DROP TABLE user;--' as any]: 'John'
+        } as any);
+        throw new Error('expected update to throw');
+      } catch (error) {
+        expect(error).toBeInstanceOf(OrmSQLiteError);
+        expect((error as OrmSQLiteError).code).toBe('ERR_UNSAFE_IDENTIFIER');
+      }
+    });
+
+    it('should generate parameterized UPDATE query', () => {
+      const result = queryBuilder.updateWithParams({
+        name: 'John',
+        email: 'john@example.com'
+      } as any);
+
+      expect(result.sql).toBe('UPDATE user SET user.name = ?, user.email = ?');
+      expect(result.params).toEqual(['John', 'john@example.com']);
     });
   });
-}); 
+});

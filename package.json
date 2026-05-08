@@ -1,6 +1,6 @@
 {
   "name": "@guilhermeabreudev/capacitor-orm-sqlite",
-  "version": "3.1.2",
+  "version": "4.0.0",
   "description": "Gerenciado de sql e banco para sqlite no capacitor",
   "main": "dist/capacitor-orm-sqlite.cjs.js",
   "module": "dist/esm/index.js",
@@ -32,7 +32,8 @@
   "scripts": {
     "verify": "npm run verify:web",
     "verify:web": "npm run build",
-    "lint": "npm run eslint && npm run prettier -- --check",
+    "ci": "npm run lint && npm run test && npm run build",
+    "lint": "npm run prettier -- --write && npm run prettier -- --check && npm run eslint",
     "fmt": "npm run eslint -- --fix && npm run prettier -- --write",
     "eslint": "eslint . --ext ts",
     "prettier": "prettier \"**/*.{css,html,ts,js,java}\"",
@@ -65,7 +66,16 @@
   "peerDependencies": {
     "@capacitor/core": "^7.0.0"
   },
-  "prettier": "@ionic/prettier-config",
+  "prettier": {
+    "singleQuote": true,
+    "trailingComma": "none",
+    "printWidth": 140,
+    "semi": true,
+    "tabWidth": 2,
+    "arrowParens": "avoid",
+    "bracketSpacing": true,
+    "endOfLine": "lf"
+  },
   "eslintConfig": {
     "extends": "@ionic/eslint-config/recommended"
   },

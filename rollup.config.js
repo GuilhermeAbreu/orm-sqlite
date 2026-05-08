@@ -10,14 +10,14 @@ export default {
         '@capacitor-community/sqlite': 'capacitorCommunitySqlite'
       },
       sourcemap: true,
-      inlineDynamicImports: true,
+      inlineDynamicImports: true
     },
     {
       file: 'dist/capacitor-orm-sqlite.cjs.js',
       format: 'cjs',
       sourcemap: true,
-      inlineDynamicImports: true,
-    },
+      inlineDynamicImports: true
+    }
   ],
-  external: ['@capacitor/core', '@capacitor-community/sqlite'],
+  external: ['@capacitor/core', '@capacitor-community/sqlite']
 };
