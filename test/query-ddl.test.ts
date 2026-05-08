@@ -7,8 +7,9 @@ describe('QueryDDL', () => {
   it('should build createTable SQL', () => {
     const sql = QueryDDL.createTable(User, [
       { name: 'id', type: 'INTEGER', primaryKey: true },
-      { name: 'name', type: 'TEXT', notNull: true },
+      { name: 'name', type: 'TEXT', notNull: true }
     ]);
+
     expect(sql).toContain('CREATE TABLE IF NOT EXISTS user');
     expect(sql).toContain('id INTEGER PRIMARY KEY');
     expect(sql).toContain('name TEXT NOT NULL');
@@ -40,9 +41,7 @@ describe('QueryDDL', () => {
   });
 
   it('should build addIndex and dropIndex SQL', () => {
-    expect(QueryDDL.addIndex(User, 'idx_user_name', ['name'])).toBe(
-      'CREATE INDEX IF NOT EXISTS idx_user_name ON user (name)'
-    );
+    expect(QueryDDL.addIndex(User, 'idx_user_name', ['name'])).toBe('CREATE INDEX IF NOT EXISTS idx_user_name ON user (name)');
     expect(QueryDDL.addIndex(User, 'idx_user_name_uq', ['name'], true)).toBe(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_user_name_uq ON user (name)'
     );

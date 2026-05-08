@@ -4,7 +4,7 @@ import {
   QueryBuildOrmSQlite,
   QueryBuildOrmSQLite,
   QueryBuildSQlite,
-  QueryBuildSQLite,
+  QueryBuildSQLite
 } from '../src/index';
 
 describe('Public API aliases', () => {

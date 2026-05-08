@@ -1,10 +1,19 @@
 import { getPrimaryKey, isColumn, isColunaRelacionamento, isManyToMany, isOneToMany } from '../decoratiors/decoratiors.orm';
 import { OrmSQLiteError } from '../errors/orm-sqlite.error';
 
-import type { IColumnTypeOrmSQlite, IJoinClauseOrmSQlite, IModelClassOrmSQlite, IParameterizedQueryOrmSQLite, IQueryBuildOrmSQlite, IQueryFilterOrmSQlite, IQueryOptionsOrmSQlite, ITypeOrderBySql, leftJoinClauseOrmSQlite } from './query-build.definitions';
+import type {
+  IColumnTypeOrmSQlite,
+  IJoinClauseOrmSQlite,
+  IModelClassOrmSQlite,
+  IParameterizedQueryOrmSQLite,
+  IQueryBuildOrmSQlite,
+  IQueryFilterOrmSQlite,
+  IQueryOptionsOrmSQlite,
+  ITypeOrderBySql,
+  leftJoinClauseOrmSQlite
+} from './query-build.definitions';
 
 export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
-
   private tableName: string;
   private filters: IQueryFilterOrmSQlite<T>[];
   private filtersJoin: IQueryFilterOrmSQlite<T>[];
@@ -33,13 +42,9 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
 
   private assertSafeIdentifier(identifier: string, fieldName: string): void {
     if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(identifier)) {
-      throw new OrmSQLiteError(
-        'ERR_UNSAFE_IDENTIFIER',
-        `Unsafe SQL identifier for ${fieldName}: '${identifier}'`
-      );
+      throw new OrmSQLiteError('ERR_UNSAFE_IDENTIFIER', `Unsafe SQL identifier for ${fieldName}: '${identifier}'`);
     }
   }
-
 
   groupBy<U>(asOrColumn: keyof T, columnCaseJoin?: keyof U): this {
     if (columnCaseJoin) {
@@ -53,44 +58,42 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     this.groupByColumns.push(`${this.tableName}.${asOrColumn as string}`);
 
     return this;
-
   }
 
   private getClassName<T>(modelClass: IModelClassOrmSQlite<T>): string {
     const className = modelClass.entityName;
 
     if (!className) {
-      throw new OrmSQLiteError(
-        'ERR_TABLE_NAME_NOT_INFORMED',
-        'Nome da tabela não informada ' + modelClass
-      )
+      throw new OrmSQLiteError('ERR_TABLE_NAME_NOT_INFORMED', 'Nome da tabela não informada ' + modelClass);
     }
 
     return className.replace(/([a-z])([A-Z])/g, '$1_$2').toLowerCase();
   }
 
-  where<K extends keyof T>(column: K & (string extends K ? never : keyof T), value: T[K], operator: IQueryFilterOrmSQlite<T>['operator'] = '='): this {
-
+  where<K extends keyof T>(
+    column: K & (string extends K ? never : keyof T),
+    value: T[K],
+    operator: IQueryFilterOrmSQlite<T>['operator'] = '='
+  ): this {
     if (!isColumn(this.classModel.prototype, column as string)) {
-      throw new OrmSQLiteError(
-        'ERR_INVALID_COLUMN',
-        `Column '${column as string}' does not exist or is not decorated as @Column.`
-      );
+      throw new OrmSQLiteError('ERR_INVALID_COLUMN', `Column '${column as string}' does not exist or is not decorated as @Column.`);
     }
 
     this.filters.push({ column, value, operator, type: 'AND' });
     return this;
   }
 
-
-  whereJoin<K extends keyof T, U>(tableNameOrColumnTableReference: IModelClassOrmSQlite<U> | K, column: keyof U, value: U[keyof U], operator: IQueryFilterOrmSQlite<T>['operator'] = '='): this {
-    
+  whereJoin<K extends keyof T, U>(
+    tableNameOrColumnTableReference: IModelClassOrmSQlite<U> | K,
+    column: keyof U,
+    value: U[keyof U],
+    operator: IQueryFilterOrmSQlite<T>['operator'] = '='
+  ): this {
     let tableNameStr: string;
 
     if (typeof tableNameOrColumnTableReference === 'number' || typeof tableNameOrColumnTableReference === 'symbol') {
-      throw `type in ${String(tableNameOrColumnTableReference)} : ${typeof tableNameOrColumnTableReference} not is valid`
+      throw `type in ${String(tableNameOrColumnTableReference)} : ${typeof tableNameOrColumnTableReference} not is valid`;
     }
-
 
     if (typeof tableNameOrColumnTableReference === 'string') {
       tableNameStr = tableNameOrColumnTableReference;
@@ -99,7 +102,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
       tableNameStr = this.getClassName(tableNameOrColumnTableReference).toLowerCase();
     }
     this.assertSafeIdentifier(String(column), 'whereJoin column');
-    
+
     const qualifiedColumn = String(`${tableNameStr}.${column.toString()}`) as keyof T; // Conversão correta para string
 
     this.filtersJoin.push({ column: qualifiedColumn, value, operator, type: 'AND' });
@@ -117,7 +120,6 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
   }
 
   orderBy<U>(asOrColumn: keyof T, order: ITypeOrderBySql = 'ASC', columnCaseJoin?: keyof U): this {
-
     if (!this.options.orderBy) {
       this.options.orderBy = [];
     }
@@ -133,7 +135,6 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     this.options.orderBy.push(`${this.tableName}.${asOrColumn as string} ${order}`);
 
     return this;
-
   }
 
   join<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K, returnValues?: boolean): this {
@@ -149,27 +150,37 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     return this;
   }
 
-  JoiOnJoin<U, J>(tableName: IModelClassOrmSQlite<U>, primaryKey: keyof U, tableJoin: IModelClassOrmSQlite<J>, foreignKey: keyof J, as: keyof U): this {
+  JoiOnJoin<U, J>(
+    tableName: IModelClassOrmSQlite<U>,
+    primaryKey: keyof U,
+    tableJoin: IModelClassOrmSQlite<J>,
+    foreignKey: keyof J,
+    as: keyof U
+  ): this {
     const tableNameStr = this.getClassName(tableName).toLowerCase();
     const tableJoinStr = this.getClassName(tableJoin).toLowerCase();
 
-    this.leftJoinOnJoinClauses.push(
-      {
-        tableName: tableNameStr,
-        tableJoin: tableJoinStr,
-        foreignKey,
-        primaryKey,
-        as,
-        class: tableName,
-        classJoin: tableJoin,
-        returnValues: true,
-      }
-    )
+    this.leftJoinOnJoinClauses.push({
+      tableName: tableNameStr,
+      tableJoin: tableJoinStr,
+      foreignKey,
+      primaryKey,
+      as,
+      class: tableName,
+      classJoin: tableJoin,
+      returnValues: true
+    });
 
     return this;
   }
 
-  leftJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K , primaryKey: keyof U, as: K, returnValues?: boolean): this {
+  leftJoin<K extends keyof T, U>(
+    tableName: IModelClassOrmSQlite<U>,
+    foreignKey: K,
+    primaryKey: keyof U,
+    as: K,
+    returnValues?: boolean
+  ): this {
     const tableNameStr = this.getClassName(tableName).toLowerCase();
     this.leftJoinClauses.push({
       tableName: tableNameStr,
@@ -177,12 +188,18 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
       primaryKey,
       as,
       class: tableName,
-      returnValues: returnValues ?? true,
+      returnValues: returnValues ?? true
     });
     return this;
   }
 
-  rightJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K, returnValues?: boolean): this {
+  rightJoin<K extends keyof T, U>(
+    tableName: IModelClassOrmSQlite<U>,
+    foreignKey: K,
+    primaryKey: keyof U,
+    as: K,
+    returnValues?: boolean
+  ): this {
     const tableNameStr = this.getClassName(tableName).toLowerCase();
     this.rightJoinClauses.push({
       tableName: tableNameStr,
@@ -195,7 +212,13 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     return this;
   }
 
-  fullJoin<K extends keyof T, U>(tableName: IModelClassOrmSQlite<U>, foreignKey: K, primaryKey: keyof U, as: K, returnValues?: boolean): this {
+  fullJoin<K extends keyof T, U>(
+    tableName: IModelClassOrmSQlite<U>,
+    foreignKey: K,
+    primaryKey: keyof U,
+    as: K,
+    returnValues?: boolean
+  ): this {
     const tableNameStr = this.getClassName(tableName).toLowerCase();
     this.fullJoinClauses.push({
       tableName: tableNameStr,
@@ -209,7 +232,6 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
   }
 
   distinct<K extends keyof T, U>(asOrColumn: K, columnCaseJoin?: keyof U): this {
-
     if (!this.options.distinct) {
       this.options.distinct = [];
     }
@@ -230,38 +252,43 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
   getQuery(): string {
     const selectColumns = this.options.distinct ? [`DISTINCT ${this.options.distinct.join(', ')}`] : [`${this.tableName}.*`];
     const jsonSelects: string[] = [];
-    const joins: string[] = []
+    const joins: string[] = [];
 
     // Handle join clauses
     const processJoinClause = (joinClause: IJoinClauseOrmSQlite, joinType: 'INNER' | 'LEFT' | 'FULL' | 'RIGHT') => {
       const joinClassInstance = new joinClause.class({});
       const joinClassKeys = Object.keys(joinClassInstance) as (keyof any)[];
 
-      const tablesJoinOnJoin = this.leftJoinOnJoinClauses.map(table => table.as)
-      const tablesNamesJoinOnJoin = this.leftJoinOnJoinClauses.map(table => table.tableName)
+      const tablesJoinOnJoin = this.leftJoinOnJoinClauses.map(table => table.as);
+      const tablesNamesJoinOnJoin = this.leftJoinOnJoinClauses.map(table => table.tableName);
 
-      const joinSelect = joinClassKeys.map(key => {
+      const joinSelect = joinClassKeys
+        .map(key => {
+          if (tablesJoinOnJoin.includes(key) && tablesNamesJoinOnJoin.includes(joinClause.tableName)) {
+            const joinOnJoin = this.leftJoinOnJoinClauses.find(join => join.as === key);
 
-        if (tablesJoinOnJoin.includes(key) && tablesNamesJoinOnJoin.includes(joinClause.tableName) ) {
-
-          const joinOnJoin = this.leftJoinOnJoinClauses.find(join => join.as === key);
-
-          if (!joinOnJoin) {
-            return;
-          }
-
-          const joinClassOnJoinInstance = new joinOnJoin.classJoin({});
-          const joinClassOnJoinKeys = Object.keys(joinClassOnJoinInstance) as (keyof any)[]
-          const joinSelectOnJoin = joinClassOnJoinKeys.map(keyjOIN => {
-            if (!this.isRelationalField(keyjOIN, joinOnJoin.classJoin)) {
-              return `
-              '${keyjOIN as string}', ${joinOnJoin.tableJoin as string}.${keyjOIN as string}`;
+            if (!joinOnJoin) {
+              return;
             }
-            return '';
-          }).filter(Boolean).join(', ');
 
-          if (isManyToMany(joinOnJoin.class.prototype, joinOnJoin.as as string) || isOneToMany(joinOnJoin.class.prototype, joinOnJoin.as as string)) {
-            return `
+            const joinClassOnJoinInstance = new joinOnJoin.classJoin({});
+            const joinClassOnJoinKeys = Object.keys(joinClassOnJoinInstance) as (keyof any)[];
+            const joinSelectOnJoin = joinClassOnJoinKeys
+              .map(keyjOIN => {
+                if (!this.isRelationalField(keyjOIN, joinOnJoin.classJoin)) {
+                  return `
+              '${keyjOIN as string}', ${joinOnJoin.tableJoin as string}.${keyjOIN as string}`;
+                }
+                return '';
+              })
+              .filter(Boolean)
+              .join(', ');
+
+            if (
+              isManyToMany(joinOnJoin.class.prototype, joinOnJoin.as as string) ||
+              isOneToMany(joinOnJoin.class.prototype, joinOnJoin.as as string)
+            ) {
+              return `
             '${joinOnJoin.as as string}',
             COALESCE(
               (
@@ -271,14 +298,16 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
                       )
                   )
                   FROM ${joinOnJoin.tableJoin}
-                  WHERE ${joinOnJoin.tableJoin as string}.${joinOnJoin.foreignKey as string} = ${joinClause.as as string}.${joinOnJoin.primaryKey}
+                  WHERE ${joinOnJoin.tableJoin as string}.${joinOnJoin.foreignKey as string} = ${joinClause.as as string}.${
+                joinOnJoin.primaryKey
+              }
               ), 
               NULL
             )
-            `
-          }
+            `;
+            }
 
-          return `
+            return `
             '${joinOnJoin.as as string}',
             COALESCE(
               (
@@ -286,28 +315,39 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
                     ${joinSelectOnJoin}
                   )
                   FROM ${joinOnJoin.tableJoin}
-                  WHERE ${joinOnJoin.tableJoin as string}.${joinOnJoin.foreignKey as string} = ${joinClause.as as string}.${joinOnJoin.primaryKey}
+                  WHERE ${joinOnJoin.tableJoin as string}.${joinOnJoin.foreignKey as string} = ${joinClause.as as string}.${
+              joinOnJoin.primaryKey
+            }
               ), 
               NULL
             )
-          `
-        }
+          `;
+          }
 
-        if (!this.isRelationalField(key, joinClause.class)) {
-          return `
+          if (!this.isRelationalField(key, joinClause.class)) {
+            return `
           '${key as string}', ${joinClause.as as string}.${key as string}`;
-        }
-        return '';
-      }).filter(Boolean).join(', ');
+          }
+          return '';
+        })
+        .filter(Boolean)
+        .join(', ');
 
       if (joinSelect) {
-        joins.push(`${joinType} JOIN ${joinClause.tableName} ${joinClause.as as string} ON ${this.tableName}.${joinClause.foreignKey as string} = ${joinClause.as as string}.${joinClause.primaryKey as string}`);
+        joins.push(
+          `${joinType} JOIN ${joinClause.tableName} ${joinClause.as as string} ON ${this.tableName}.${joinClause.foreignKey as string} = ${
+            joinClause.as as string
+          }.${joinClause.primaryKey as string}`
+        );
 
         if (joinClause.returnValues === false) {
           return;
         }
 
-        if (isManyToMany(this.classModel.prototype, joinClause.as as string) || isOneToMany(this.classModel.prototype, joinClause.as as string)) {
+        if (
+          isManyToMany(this.classModel.prototype, joinClause.as as string) ||
+          isOneToMany(this.classModel.prototype, joinClause.as as string)
+        ) {
           jsonSelects.push(`
           CASE
             WHEN ${joinClause.as as string}.${getPrimaryKey(joinClassInstance) as string} IS NOT NULL THEN
@@ -346,7 +386,6 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
       query += `, ${jsonSelects.join(', ')}`;
     }
 
-
     query += ` FROM ${this.tableName}`;
 
     if (joins.length > 0) {
@@ -355,17 +394,19 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
 
     if (this.filters.length > 0) {
       query += ' WHERE ';
-      query += this.filters.map((filter, index) => {
-        let condition;
-        if (filter.isIn) {
-          const inValues = Array.isArray(filter.value) ? filter.value : [];
-          const formattedValues = inValues.map(value => this.formatValue(value)).join(',');
-          condition = `${this.tableName}.${filter.column as string} IN (${formattedValues})`;
-        } else {
-          condition = `${this.tableName}.${filter.column as string} ${filter.operator} ${this.formatValue(filter.value)}`;
-        }
-        return index > 0 ? ` ${filter.type} ${condition}` : condition;
-      }).join('');
+      query += this.filters
+        .map((filter, index) => {
+          let condition;
+          if (filter.isIn) {
+            const inValues = Array.isArray(filter.value) ? filter.value : [];
+            const formattedValues = inValues.map(value => this.formatValue(value)).join(',');
+            condition = `${this.tableName}.${filter.column as string} IN (${formattedValues})`;
+          } else {
+            condition = `${this.tableName}.${filter.column as string} ${filter.operator} ${this.formatValue(filter.value)}`;
+          }
+          return index > 0 ? ` ${filter.type} ${condition}` : condition;
+        })
+        .join('');
     }
 
     if (this.filtersJoin.length > 0) {
@@ -374,10 +415,12 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
       } else {
         query += ' AND ';
       }
-      query += this.filtersJoin.map((filter, index) => {
-        const condition = `${filter.column as string} ${filter.operator} ${this.formatValue(filter.value)}`;
-        return index > 0 ? ` ${filter.type} ${condition}` : condition;
-      }).join('');
+      query += this.filtersJoin
+        .map((filter, index) => {
+          const condition = `${filter.column as string} ${filter.operator} ${this.formatValue(filter.value)}`;
+          return index > 0 ? ` ${filter.type} ${condition}` : condition;
+        })
+        .join('');
     }
 
     if (this.groupByColumns.length > 0) {
@@ -411,14 +454,13 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
 
     return {
       sql,
-      params: replacements.flatMap(replacement => replacement.params),
+      params: replacements.flatMap(replacement => replacement.params)
     };
   }
 
-
   private formatValue(value: any): string {
     if (value instanceof Date) {
-      return `'${new Date((value.getTime() - value.getTimezoneOffset() * 60 * 1000)).toISOString().slice(0, 19).replace('T', ' ')}'`;
+      return `'${new Date(value.getTime() - value.getTimezoneOffset() * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ')}'`;
     } else if (typeof value === 'string') {
       return `'${this.escapeSqlString(value)}'`;
     } else if (typeof value === 'number' || typeof value === 'boolean') {
@@ -443,7 +485,6 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
   }
 
   insert(values: Partial<T> | Partial<T>[], returnValues = true): string {
-
     if (!Array.isArray(values)) {
       values = [values];
     }
@@ -453,15 +494,15 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     }
 
     // Filtrar campos relacionais e campos com valor undefined
-    const filteredKeys = (Object.keys(values[0]) as (keyof T)[]).filter(key =>
-      !this.isRelationalField(key)
-    );
+    const filteredKeys = (Object.keys(values[0]) as (keyof T)[]).filter(key => !this.isRelationalField(key));
     const columns = filteredKeys.join(', ');
 
-    const rows = (values as Partial<T>[]).map(value => {
-      const columnValues = filteredKeys.map(key => this.formatValue((value as any)[key])).join(', ');
-      return `(${columnValues})`;
-    }).join(', ');
+    const rows = (values as Partial<T>[])
+      .map(value => {
+        const columnValues = filteredKeys.map(key => this.formatValue((value as any)[key])).join(', ');
+        return `(${columnValues})`;
+      })
+      .join(', ');
 
     return `INSERT INTO ${this.tableName} (${columns}) VALUES ${rows} ${returnValues ? 'RETURNING *' : ''}`;
   }
@@ -475,23 +516,25 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
       return { sql: '', params: [] };
     }
 
-    const filteredKeys = (Object.keys(values[0]) as (keyof T)[]).filter(key =>
-      !this.isRelationalField(key)
-    );
+    const filteredKeys = (Object.keys(values[0]) as (keyof T)[]).filter(key => !this.isRelationalField(key));
     const columns = filteredKeys.join(', ');
 
     const params: any[] = [];
-    const rows = (values as Partial<T>[]).map(value => {
-      const placeholders = filteredKeys.map(key => {
-        params.push(this.toParamValue((value as any)[key]));
-        return '?';
-      }).join(', ');
-      return `(${placeholders})`;
-    }).join(', ');
+    const rows = (values as Partial<T>[])
+      .map(value => {
+        const placeholders = filteredKeys
+          .map(key => {
+            params.push(this.toParamValue((value as any)[key]));
+            return '?';
+          })
+          .join(', ');
+        return `(${placeholders})`;
+      })
+      .join(', ');
 
     return {
       sql: `INSERT INTO ${this.tableName} (${columns}) VALUES ${rows} ${returnValues ? 'RETURNING *' : ''}`.trim(),
-      params,
+      params
     };
   }
 
@@ -500,12 +543,15 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
 
     delete values[chavePrimaria as keyof T];
 
-    const setClause = Object.entries(values).map(([key, value]) => {
-      if (!this.isRelationalField(key)) {
-        return `${key} = ${this.formatValue(value)}`
-      }
-      return '';
-    }).filter(Boolean).join(', ');
+    const setClause = Object.entries(values)
+      .map(([key, value]) => {
+        if (!this.isRelationalField(key)) {
+          return `${key} = ${this.formatValue(value)}`;
+        }
+        return '';
+      })
+      .filter(Boolean)
+      .join(', ');
 
     let query = `UPDATE ${this.tableName} SET ${setClause}`;
 
@@ -514,8 +560,8 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
       query += this.filters.map(filter => `${filter.column as string} ${filter.operator} ${this.formatValue(filter.value)}`).join(' AND ');
     }
 
-    if (returnValues){
-      query += returnValues ? ' RETURNING *' : ''
+    if (returnValues) {
+      query += returnValues ? ' RETURNING *' : '';
     }
 
     return query;
@@ -526,22 +572,27 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     delete values[chavePrimaria as keyof T];
 
     const params: any[] = [];
-    const setClause = Object.entries(values).map(([key, value]) => {
-      if (!this.isRelationalField(key)) {
-        params.push(this.toParamValue(value));
-        return `${key} = ?`;
-      }
-      return '';
-    }).filter(Boolean).join(', ');
+    const setClause = Object.entries(values)
+      .map(([key, value]) => {
+        if (!this.isRelationalField(key)) {
+          params.push(this.toParamValue(value));
+          return `${key} = ?`;
+        }
+        return '';
+      })
+      .filter(Boolean)
+      .join(', ');
 
     let sql = `UPDATE ${this.tableName} SET ${setClause}`;
 
     if (this.filters.length > 0) {
       sql += ' WHERE ';
-      sql += this.filters.map(filter => {
-        params.push(this.toParamValue(filter.value));
-        return `${filter.column as string} ${filter.operator} ?`;
-      }).join(' AND ');
+      sql += this.filters
+        .map(filter => {
+          params.push(this.toParamValue(filter.value));
+          return `${filter.column as string} ${filter.operator} ?`;
+        })
+        .join(' AND ');
     }
 
     if (returnValues) {
@@ -572,7 +623,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
       }
 
       if (column.autoIncremente) {
-        definition += ` AUTOINCREMENT`
+        definition += ` AUTOINCREMENT`;
       }
 
       if (column.unique) {
@@ -620,13 +671,13 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     return `ALTER TABLE ${this.tableName} DROP COLUMN ${String(columnName)}`;
   }
 
-  or<K extends keyof T>(column: K & (string extends K ? never : keyof T), value: T[K], operator: IQueryFilterOrmSQlite<T>['operator'] = '='): this {
-    
+  or<K extends keyof T>(
+    column: K & (string extends K ? never : keyof T),
+    value: T[K],
+    operator: IQueryFilterOrmSQlite<T>['operator'] = '='
+  ): this {
     if (!isColumn(this.classModel.prototype, column as string)) {
-      throw new OrmSQLiteError(
-        'ERR_INVALID_COLUMN',
-        `Column '${column as string}' does not exist or is not decorated as @Column.`
-      );
+      throw new OrmSQLiteError('ERR_INVALID_COLUMN', `Column '${column as string}' does not exist or is not decorated as @Column.`);
     }
 
     this.filters.push({ column, value, operator, type: 'OR' });
@@ -635,10 +686,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
 
   orIn<K extends keyof T>(column: K & (string extends K ? never : keyof T), values: T[K][]): this {
     if (!isColumn(this.classModel.prototype, column as string)) {
-      throw new OrmSQLiteError(
-        'ERR_INVALID_COLUMN',
-        `Column '${column as string}' does not exist or is not decorated as @Column.`
-      );
+      throw new OrmSQLiteError('ERR_INVALID_COLUMN', `Column '${column as string}' does not exist or is not decorated as @Column.`);
     }
 
     this.filters.push({ column, value: values, operator: '=' as any, type: 'OR', isIn: true });
@@ -647,10 +695,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
 
   whereIn<K extends keyof T>(column: K & (string extends K ? never : keyof T), values: T[K][]): this {
     if (!isColumn(this.classModel.prototype, column as string)) {
-      throw new OrmSQLiteError(
-        'ERR_INVALID_COLUMN',
-        `Column '${column as string}' does not exist or is not decorated as @Column.`
-      );
+      throw new OrmSQLiteError('ERR_INVALID_COLUMN', `Column '${column as string}' does not exist or is not decorated as @Column.`);
     }
 
     this.filters.push({ column, value: values, operator: '=' as any, type: 'AND', isIn: true });
@@ -681,10 +726,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
 
   private toParamValue(value: any): any {
     if (value instanceof Date) {
-      return new Date((value.getTime() - value.getTimezoneOffset() * 60 * 1000))
-        .toISOString()
-        .slice(0, 19)
-        .replace('T', ' ');
+      return new Date(value.getTime() - value.getTimezoneOffset() * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
     }
     if (value === undefined) {
       return null;
@@ -704,7 +746,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
         replacements.push({
           formattedValue: `(${inValues.map(value => this.formatValue(value)).join(',')})`,
           placeholder: `(${inValues.map(() => '?').join(',')})`,
-          params: inValues.map(value => this.toParamValue(value)),
+          params: inValues.map(value => this.toParamValue(value))
         });
         return;
       }
@@ -712,7 +754,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
       replacements.push({
         formattedValue: this.formatValue(filter.value),
         placeholder: '?',
-        params: [this.toParamValue(filter.value)],
+        params: [this.toParamValue(filter.value)]
       });
     });
 
@@ -720,7 +762,7 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
       replacements.push({
         formattedValue: this.formatValue(filter.value),
         placeholder: '?',
-        params: [this.toParamValue(filter.value)],
+        params: [this.toParamValue(filter.value)]
       });
     });
 

@@ -21,7 +21,11 @@ npx cap sync
 * [`commitTransaction()`](#committransaction)
 * [`rollbackTransaction()`](#rollbacktransaction)
 * [`execute(...)`](#execute)
+* [`executeWithParams(...)`](#executewithparams)
+* [`executeTransaction(...)`](#executetransaction)
 * [`query(...)`](#query)
+* [`queryWithParams(...)`](#querywithparams)
+* [`queryOneWithParams(...)`](#queryonewithparams)
 * [`getCurrentDBVersion()`](#getcurrentdbversion)
 * [`updateDBVersion(...)`](#updatedbversion)
 * [`recreateDatabase(...)`](#recreatedatabase)
@@ -120,6 +124,37 @@ execute<T = any>(sql: string) => Promise<IReturnExecuteQuery<T>>
 --------------------
 
 
+### executeWithParams(...)
+
+```typescript
+executeWithParams<T = any>(sql: string, params: any[]) => Promise<IReturnExecuteQuery<T>>
+```
+
+| Param        | Type                |
+| ------------ | ------------------- |
+| **`sql`**    | <code>string</code> |
+| **`params`** | <code>any[]</code>  |
+
+**Returns:** <code>Promise&lt;<a href="#ireturnexecutequery">IReturnExecuteQuery</a>&lt;T&gt;&gt;</code>
+
+--------------------
+
+
+### executeTransaction(...)
+
+```typescript
+executeTransaction<T = any>(work: () => Promise<T>) => Promise<T>
+```
+
+| Param      | Type                                   |
+| ---------- | -------------------------------------- |
+| **`work`** | <code>() =&gt; Promise&lt;T&gt;</code> |
+
+**Returns:** <code>Promise&lt;T&gt;</code>
+
+--------------------
+
+
 ### query(...)
 
 ```typescript
@@ -131,6 +166,38 @@ query<T = any>(sql: string) => Promise<T[]>
 | **`sql`** | <code>string</code> |
 
 **Returns:** <code>Promise&lt;T[]&gt;</code>
+
+--------------------
+
+
+### queryWithParams(...)
+
+```typescript
+queryWithParams<T = any>(sql: string, params: any[]) => Promise<T[]>
+```
+
+| Param        | Type                |
+| ------------ | ------------------- |
+| **`sql`**    | <code>string</code> |
+| **`params`** | <code>any[]</code>  |
+
+**Returns:** <code>Promise&lt;T[]&gt;</code>
+
+--------------------
+
+
+### queryOneWithParams(...)
+
+```typescript
+queryOneWithParams<T = any>(sql: string, params: any[]) => Promise<T | null>
+```
+
+| Param        | Type                |
+| ------------ | ------------------- |
+| **`sql`**    | <code>string</code> |
+| **`params`** | <code>any[]</code>  |
+
+**Returns:** <code>Promise&lt;T | null&gt;</code>
 
 --------------------
 

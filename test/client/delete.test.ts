@@ -1,7 +1,6 @@
 import { QueryBuildSQlite } from '../../src/query/query-build-sqlite';
 import { User } from '../class/User.class';
 
-
 describe('NewQueryBuilder - DELETE Operations', () => {
   let queryBuilder: QueryBuildSQlite<User>;
 
@@ -30,9 +29,7 @@ describe('NewQueryBuilder - DELETE Operations', () => {
           name: { in: ['john@example.com', 'jane@example.com'] }
         }
       });
-      expect(sql).toBe(
-        "DELETE FROM user WHERE user.name IN ('john@example.com', 'jane@example.com')"
-      );
+      expect(sql).toBe("DELETE FROM user WHERE user.name IN ('john@example.com', 'jane@example.com')");
     });
 
     it('should handle multiple WHERE conditions', () => {
@@ -44,9 +41,7 @@ describe('NewQueryBuilder - DELETE Operations', () => {
           }
         }
       });
-      expect(sql).toBe(
-        "DELETE FROM user WHERE user.name = 'John' AND user.email != NULL"
-      );
+      expect(sql).toBe("DELETE FROM user WHERE user.name = 'John' AND user.email != NULL");
     });
 
     it('should handle date conditions', () => {
@@ -56,9 +51,7 @@ describe('NewQueryBuilder - DELETE Operations', () => {
           createdAt: { gt: date }
         }
       });
-      expect(sql).toBe(
-        `DELETE FROM user WHERE user.createdAt > '${date.toISOString()}'`
-      );
+      expect(sql).toBe(`DELETE FROM user WHERE user.createdAt > '${date.toISOString()}'`);
     });
 
     it('should handle null conditions', () => {
@@ -66,11 +59,9 @@ describe('NewQueryBuilder - DELETE Operations', () => {
         where: {
           email: null,
           name: { not: '' }
-        },
+        }
       });
-      expect(sql).toBe(
-        "DELETE FROM user WHERE user.email = NULL AND user.name != ''"
-      );
+      expect(sql).toBe("DELETE FROM user WHERE user.email = NULL AND user.name != ''");
     });
 
     it('should handle array conditions with IN operator', () => {
@@ -79,9 +70,7 @@ describe('NewQueryBuilder - DELETE Operations', () => {
           id: { in: [1, 2, 3, 4] }
         }
       });
-      expect(sql).toBe(
-        "DELETE FROM user WHERE user.id IN (1, 2, 3, 4)"
-      );
+      expect(sql).toBe('DELETE FROM user WHERE user.id IN (1, 2, 3, 4)');
     });
 
     it('should handle multiple comparison operators', () => {
@@ -91,26 +80,19 @@ describe('NewQueryBuilder - DELETE Operations', () => {
           email: { not: null }
         }
       });
-      expect(sql).toBe(
-        "DELETE FROM user WHERE user.age >= 18 AND user.age <= 65 AND user.email != NULL"
-      );
+      expect(sql).toBe('DELETE FROM user WHERE user.age >= 18 AND user.age <= 65 AND user.email != NULL');
     });
 
     it('should handle empty where conditions', () => {
       const sql = queryBuilder.delete({});
-      expect(sql).toBe("DELETE FROM user");
+      expect(sql).toBe('DELETE FROM user');
     });
 
     it('should handle OR conditions', () => {
       const sql = queryBuilder.delete({
-        or: [
-          { name: 'John' },
-          { email: { not: null } }
-        ]
+        or: [{ name: 'John' }, { email: { not: null } }]
       });
-      expect(sql).toBe(
-        "DELETE FROM user WHERE (user.name = 'John') OR (user.email != NULL)"
-      );
+      expect(sql).toBe("DELETE FROM user WHERE (user.name = 'John') OR (user.email != NULL)");
     });
   });
-}); 
+});

@@ -33,9 +33,9 @@ function createMockDBConnection(isOpen = false): MockDBConnection {
     run: jest.fn(async () => ({
       changes: {
         changes: 0,
-        values: [],
-      },
-    })),
+        values: []
+      }
+    }))
   };
 }
 
@@ -43,7 +43,7 @@ function createMockSQLiteConnection(): MockSQLiteConnection {
   return {
     checkConnectionsConsistency: jest.fn(async () => ({ result: true })),
     retrieveConnection: jest.fn(),
-    createConnection: jest.fn(),
+    createConnection: jest.fn()
   };
 }
 
@@ -57,7 +57,7 @@ function resetConnectionState(): void {
     mode: 'no-encryption',
     version: 1,
     readonly: false,
-    log: false,
+    log: false
   });
 }
 
@@ -79,20 +79,12 @@ describe('DatabaseConnectionOrmSQlite connection resilience', () => {
         })
     );
 
-    new DatabaseConnectionOrmSQlite(
-      sqlite as any,
-      'app_db',
-      false,
-      'no-encryption',
-      1,
-      false,
-      false
-    );
+    new DatabaseConnectionOrmSQlite(sqlite as any, 'app_db', false, 'no-encryption', 1, false, false);
 
     const [dbA, dbB, dbC] = await Promise.all([
       DatabaseConnectionOrmSQlite.db,
       DatabaseConnectionOrmSQlite.db,
-      DatabaseConnectionOrmSQlite.db,
+      DatabaseConnectionOrmSQlite.db
     ]);
 
     expect(dbA).toBe(dbConn);
@@ -106,20 +98,10 @@ describe('DatabaseConnectionOrmSQlite connection resilience', () => {
     const sqlite = createMockSQLiteConnection();
     const dbConn = createMockDBConnection(false);
 
-    sqlite.retrieveConnection
-      .mockRejectedValueOnce(new Error('missing'))
-      .mockResolvedValueOnce(dbConn);
+    sqlite.retrieveConnection.mockRejectedValueOnce(new Error('missing')).mockResolvedValueOnce(dbConn);
     sqlite.createConnection.mockRejectedValue(new Error('Connection already exists'));
 
-    new DatabaseConnectionOrmSQlite(
-      sqlite as any,
-      'app_db',
-      false,
-      'no-encryption',
-      1,
-      false,
-      false
-    );
+    new DatabaseConnectionOrmSQlite(sqlite as any, 'app_db', false, 'no-encryption', 1, false, false);
 
     const db = await DatabaseConnectionOrmSQlite.db;
 
@@ -130,15 +112,11 @@ describe('DatabaseConnectionOrmSQlite connection resilience', () => {
   });
 
   it('should throw a clear error when connection config is not initialized', async () => {
-    await expect(DatabaseConnectionOrmSQlite.createOrReconnectConnection()).rejects.toThrow(
-      'SQLiteConnection not configured'
-    );
+    await expect(DatabaseConnectionOrmSQlite.createOrReconnectConnection()).rejects.toThrow('SQLiteConnection not configured');
   });
 
   it('should throw Error when executing an empty SQL string', async () => {
-    await expect(DatabaseConnectionOrmSQlite.execute('   ')).rejects.toThrow(
-      'The sql passed in the parameter is empty'
-    );
+    await expect(DatabaseConnectionOrmSQlite.execute('   ')).rejects.toThrow('The sql passed in the parameter is empty');
   });
 
   it('should expose stable error code for empty SQL', async () => {
@@ -152,16 +130,14 @@ describe('DatabaseConnectionOrmSQlite connection resilience', () => {
   });
 
   it('should throw clear error when migrations list is empty', async () => {
-    await expect(DatabaseConnectionOrmSQlite.runMigrationsIfNeeded([])).rejects.toThrow(
-      'Migrations list is empty'
-    );
+    await expect(DatabaseConnectionOrmSQlite.runMigrationsIfNeeded([])).rejects.toThrow('Migrations list is empty');
   });
 
   it('should throw clear error when migrations contain duplicate versions', async () => {
     await expect(
       DatabaseConnectionOrmSQlite.runMigrationsIfNeeded([
         { version: 1, sql: ['CREATE TABLE a (id INTEGER);'] },
-        { version: 1, sql: ['CREATE TABLE b (id INTEGER);'] },
+        { version: 1, sql: ['CREATE TABLE b (id INTEGER);'] }
       ])
     ).rejects.toThrow('Duplicate migration version detected');
   });
@@ -170,7 +146,7 @@ describe('DatabaseConnectionOrmSQlite connection resilience', () => {
     await expect(
       DatabaseConnectionOrmSQlite.runMigrationsIfNeeded([
         { version: 2, sql: ['CREATE TABLE b (id INTEGER);'] },
-        { version: 1, sql: ['CREATE TABLE a (id INTEGER);'] },
+        { version: 1, sql: ['CREATE TABLE a (id INTEGER);'] }
       ])
     ).rejects.toThrow('Migrations must be sorted in ascending order');
   });
@@ -184,20 +160,12 @@ describe('DatabaseConnectionOrmSQlite connection resilience', () => {
 
     sqlite.retrieveConnection.mockResolvedValue(dbConn);
 
-    new DatabaseConnectionOrmSQlite(
-      sqlite as any,
-      'app_db',
-      false,
-      'no-encryption',
-      1,
-      false,
-      false
-    );
+    new DatabaseConnectionOrmSQlite(sqlite as any, 'app_db', false, 'no-encryption', 1, false, false);
 
     try {
       await DatabaseConnectionOrmSQlite.runMigrationsIfNeeded([
         { version: 1, sql: ['CREATE TABLE a (id INTEGER);'] },
-        { version: 3, sql: ['CREATE TABLE c (id INTEGER);'] },
+        { version: 3, sql: ['CREATE TABLE c (id INTEGER);'] }
       ]);
       throw new Error('expected runMigrationsIfNeeded to throw');
     } catch (error) {
@@ -214,9 +182,9 @@ describe('DatabaseConnectionOrmSQlite connection resilience', () => {
           scalarNumberAsString: '123',
           scalarBooleanAsString: 'true',
           jsonObject: '{"a":1}',
-          jsonArray: '[1,2]',
-        },
-      ],
+          jsonArray: '[1,2]'
+        }
+      ]
     }));
 
     (DatabaseConnectionOrmSQlite as any)._DB = mockDb;
@@ -245,20 +213,10 @@ describe('DatabaseConnectionOrmSQlite connection resilience', () => {
 
     sqlite.retrieveConnection.mockResolvedValue(dbConn);
 
-    new DatabaseConnectionOrmSQlite(
-      sqlite as any,
-      'app_db',
-      false,
-      'no-encryption',
-      1,
-      false,
-      false
-    );
+    new DatabaseConnectionOrmSQlite(sqlite as any, 'app_db', false, 'no-encryption', 1, false, false);
 
     await expect(
-      DatabaseConnectionOrmSQlite.runMigrationsIfNeeded([
-        { version: 1, sql: ['CREATE TABLE a (id INTEGER);', 'INVALID SQL'] },
-      ])
+      DatabaseConnectionOrmSQlite.runMigrationsIfNeeded([{ version: 1, sql: ['CREATE TABLE a (id INTEGER);', 'INVALID SQL'] }])
     ).rejects.toThrow('sql failed');
 
     expect(dbConn.beginTransaction).toHaveBeenCalled();
@@ -298,7 +256,11 @@ describe('DatabaseConnectionOrmSQlite connection resilience', () => {
     sqlite.retrieveConnection.mockResolvedValue(dbConn);
 
     new DatabaseConnectionOrmSQlite(sqlite as any, 'app_db', false, 'no-encryption', 1, false, false);
-    DatabaseConnectionOrmSQlite.setConfig({ database: 'app_db_v2', mode: 'no-encryption', version: 2 });
+    DatabaseConnectionOrmSQlite.setConfig({
+      database: 'app_db_v2',
+      mode: 'no-encryption',
+      version: 2
+    });
 
     await DatabaseConnectionOrmSQlite.db;
     expect(sqlite.retrieveConnection).toHaveBeenCalledWith('app_db_v2', false);
@@ -309,15 +271,7 @@ describe('DatabaseConnectionOrmSQlite connection resilience', () => {
     const dbConn = createMockDBConnection(true);
     sqlite.retrieveConnection.mockResolvedValue(dbConn);
 
-    new DatabaseConnectionOrmSQlite(
-      sqlite as any,
-      'app_db',
-      false,
-      'no-encryption',
-      1,
-      false,
-      false
-    );
+    new DatabaseConnectionOrmSQlite(sqlite as any, 'app_db', false, 'no-encryption', 1, false, false);
 
     await DatabaseConnectionOrmSQlite.db;
     expect(dbConn.open).not.toHaveBeenCalled();
@@ -360,7 +314,7 @@ describe('DatabaseConnectionOrmSQlite connection resilience', () => {
   it('should keep non-json text unchanged in query parseRow', async () => {
     const mockDb = createMockDBConnection(true);
     mockDb.query = jest.fn(async () => ({
-      values: [{ text: 'plain-text', maybeJsonLike: '{invalid-json' }],
+      values: [{ text: 'plain-text', maybeJsonLike: '{invalid-json' }]
     }));
 
     (DatabaseConnectionOrmSQlite as any)._DB = mockDb;
@@ -379,7 +333,11 @@ describe('DatabaseConnectionOrmSQlite connection resilience', () => {
 
     (DatabaseConnectionOrmSQlite as any)._DB = mockDb;
     (DatabaseConnectionOrmSQlite as any).sqlite = createMockSQLiteConnection();
-    DatabaseConnectionOrmSQlite.setConfig({ database: 'app_db', mode: 'no-encryption', version: 1 });
+    DatabaseConnectionOrmSQlite.setConfig({
+      database: 'app_db',
+      mode: 'no-encryption',
+      version: 1
+    });
     (DatabaseConnectionOrmSQlite as any)._DB = mockDb;
 
     const rows = await DatabaseConnectionOrmSQlite.queryWithParams('SELECT * FROM user WHERE id = ?', [1]);
@@ -393,13 +351,14 @@ describe('DatabaseConnectionOrmSQlite connection resilience', () => {
 
     (DatabaseConnectionOrmSQlite as any)._DB = mockDb;
     (DatabaseConnectionOrmSQlite as any).sqlite = createMockSQLiteConnection();
-    DatabaseConnectionOrmSQlite.setConfig({ database: 'app_db', mode: 'no-encryption', version: 1 });
+    DatabaseConnectionOrmSQlite.setConfig({
+      database: 'app_db',
+      mode: 'no-encryption',
+      version: 1
+    });
     (DatabaseConnectionOrmSQlite as any)._DB = mockDb;
 
-    const result = await DatabaseConnectionOrmSQlite.executeWithParams(
-      'INSERT INTO user(name) VALUES (?)',
-      ['John']
-    );
+    const result = await DatabaseConnectionOrmSQlite.executeWithParams('INSERT INTO user(name) VALUES (?)', ['John']);
 
     expect(mockDb.run).toHaveBeenCalledWith('INSERT INTO user(name) VALUES (?)', ['John'], false, 'all');
     expect(result.hasChanged).toBe(true);
@@ -415,7 +374,11 @@ describe('DatabaseConnectionOrmSQlite connection resilience', () => {
 
     (DatabaseConnectionOrmSQlite as any)._DB = mockDb;
     (DatabaseConnectionOrmSQlite as any).sqlite = createMockSQLiteConnection();
-    DatabaseConnectionOrmSQlite.setConfig({ database: 'app_db', mode: 'no-encryption', version: 1 });
+    DatabaseConnectionOrmSQlite.setConfig({
+      database: 'app_db',
+      mode: 'no-encryption',
+      version: 1
+    });
     (DatabaseConnectionOrmSQlite as any)._DB = mockDb;
 
     const first = await DatabaseConnectionOrmSQlite.queryOneWithParams('SELECT * FROM user WHERE id = ?', [1]);
@@ -429,7 +392,11 @@ describe('DatabaseConnectionOrmSQlite connection resilience', () => {
     const mockDb = createMockDBConnection(true);
     (DatabaseConnectionOrmSQlite as any)._DB = mockDb;
     (DatabaseConnectionOrmSQlite as any).sqlite = createMockSQLiteConnection();
-    DatabaseConnectionOrmSQlite.setConfig({ database: 'app_db', mode: 'no-encryption', version: 1 });
+    DatabaseConnectionOrmSQlite.setConfig({
+      database: 'app_db',
+      mode: 'no-encryption',
+      version: 1
+    });
     (DatabaseConnectionOrmSQlite as any)._DB = mockDb;
 
     const result = await DatabaseConnectionOrmSQlite.executeTransaction(async () => 'ok');
@@ -443,7 +410,11 @@ describe('DatabaseConnectionOrmSQlite connection resilience', () => {
     const mockDb = createMockDBConnection(true);
     (DatabaseConnectionOrmSQlite as any)._DB = mockDb;
     (DatabaseConnectionOrmSQlite as any).sqlite = createMockSQLiteConnection();
-    DatabaseConnectionOrmSQlite.setConfig({ database: 'app_db', mode: 'no-encryption', version: 1 });
+    DatabaseConnectionOrmSQlite.setConfig({
+      database: 'app_db',
+      mode: 'no-encryption',
+      version: 1
+    });
     (DatabaseConnectionOrmSQlite as any)._DB = mockDb;
 
     await expect(

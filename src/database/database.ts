@@ -3,11 +3,14 @@ import { CapacitorSQLite } from '@capacitor-community/sqlite';
 
 import { OrmSQLiteError } from '../errors/orm-sqlite.error';
 
-import type { IDatabaseConfig, IDatabaseConnectionOrmSQLite, IMigrationDatabaseOrmSQLite, IReturnExecuteQuery } from './database.definitions';
-
+import type {
+  IDatabaseConfig,
+  IDatabaseConnectionOrmSQLite,
+  IMigrationDatabaseOrmSQLite,
+  IReturnExecuteQuery
+} from './database.definitions';
 
 export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite {
-
   protected static sqlite: SQLiteConnection;
   private static _DB: SQLiteDBConnection | undefined;
   private static _connectionPromise: Promise<SQLiteDBConnection> | undefined;
@@ -18,7 +21,7 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
     mode: '',
     version: 1,
     readonly: false,
-    log: false,
+    log: false
   };
 
   constructor(
@@ -65,7 +68,7 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
 
   public static setConfig(config: Partial<typeof DatabaseConnectionOrmSQlite.config>): void {
     DatabaseConnectionOrmSQlite.config = { ...DatabaseConnectionOrmSQlite.config, ...config };
-    DatabaseConnectionOrmSQlite._DB = undefined;  // Reset DB connection to force reinitialization with new config
+    DatabaseConnectionOrmSQlite._DB = undefined; // Reset DB connection to force reinitialization with new config
     DatabaseConnectionOrmSQlite._connectionPromise = undefined;
   }
 
@@ -151,7 +154,7 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
         console.debug(`Inconsistent connections detected. Creating new connection to database ${dbName}`);
         return await this.createConnectionWithFallback(dbName);
       }
-  
+
       // Try to retrieve existing connection
       let connection: SQLiteDBConnection | null = null;
       try {
@@ -160,20 +163,19 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
       } catch (retrieveError) {
         console.debug(`No existing connection found for database ${dbName}. Creating new connection.`);
       }
-  
+
       // If no existing connection, create a new one
       if (!connection) {
         connection = await this.createConnectionWithFallback(dbName);
         console.debug(`Created new connection to database ${dbName}`);
       }
-  
+
       return connection;
     } catch (error) {
       console.error(`Error creating or reconnecting to database ${dbName}:`, error);
       throw error;
     }
   }
-  
 
   public static async closeDB(): Promise<void> {
     DatabaseConnectionOrmSQlite._connectionPromise = undefined;
@@ -203,9 +205,9 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
     await db.rollbackTransaction();
   }
 
-  public static async execute<T = any>(sql: string): Promise<IReturnExecuteQuery<T>> {    
+  public static async execute<T = any>(sql: string): Promise<IReturnExecuteQuery<T>> {
     if (this.config.log) {
-      console.debug(this.config.database, ' | SQL: ' ,sql);
+      console.debug(this.config.database, ' | SQL: ', sql);
     }
 
     this.validateSql(sql);
@@ -213,14 +215,14 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
     const db = await this.db;
     const result = await db.run(sql, undefined, false, 'all');
     const values = result.changes?.values ?? [];
-    const changes = result.changes?.changes ?? 0
+    const changes = result.changes?.changes ?? 0;
 
     return {
       changes: changes,
       hasChanged: changes > 0,
       values: values ?? [],
-      changedValues: values.slice(-changes) ?? [],
-    }
+      changedValues: values.slice(-changes) ?? []
+    };
   }
 
   public static async executeWithParams<T = any>(sql: string, params: any[]): Promise<IReturnExecuteQuery<T>> {
@@ -234,19 +236,19 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
     const result = await db.run(sql, params, false, 'all');
 
     const values = result.changes?.values ?? [];
-    const changes = result.changes?.changes ?? 0
+    const changes = result.changes?.changes ?? 0;
 
     return {
       changes: changes,
       hasChanged: changes > 0,
       values: values ?? [],
-      changedValues: values.slice(-changes) ?? [],
-    }
+      changedValues: values.slice(-changes) ?? []
+    };
   }
 
   public static async query<T = any>(sql: string): Promise<T[]> {
     if (this.config.log) {
-      console.debug(this.config.database, ' | SQL: ' ,sql);
+      console.debug(this.config.database, ' | SQL: ', sql);
     }
 
     this.validateSql(sql);
@@ -293,7 +295,7 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
   }
 
   public static async getCurrentDBVersion(): Promise<number | undefined> {
-    const result = await this.query<{version: number}>(`
+    const result = await this.query<{ version: number }>(`
         SELECT version FROM db_version
         ORDER BY id DESC LIMIT 1;
       `);
@@ -326,7 +328,7 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
       await this.runInitialMigrations(migrations);
       return;
     }
-    
+
     await this.migrateIfNeeded(migrations, currentVersion);
   }
 
@@ -355,13 +357,7 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
 
   private static async createConnectionWithFallback(dbName: string): Promise<SQLiteDBConnection> {
     try {
-      return await this.sqlite.createConnection(
-        dbName,
-        this.config.encrypted,
-        this.config.mode,
-        this.config.version,
-        this.config.readonly
-      );
+      return await this.sqlite.createConnection(dbName, this.config.encrypted, this.config.mode, this.config.version, this.config.readonly);
     } catch (error) {
       const message = `${error}`;
       if (message.toLowerCase().includes('connection') && message.toLowerCase().includes('exist')) {
@@ -439,10 +435,7 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
   private static async migrateToVersion(migrations: IMigrationDatabaseOrmSQLite[], version: number): Promise<void> {
     const migration = migrations.find(m => m.version === version);
     if (!migration) {
-      throw new OrmSQLiteError(
-        'ERR_MIGRATION_NOT_FOUND',
-        `Migration for version ${version} not found`
-      );
+      throw new OrmSQLiteError('ERR_MIGRATION_NOT_FOUND', `Migration for version ${version} not found`);
     }
 
     await this.executeMigrationSqlInTransaction(migration.sql);
@@ -496,27 +489,18 @@ export class DatabaseConnectionOrmSQlite implements IDatabaseConnectionOrmSQLite
 
   private static validateMigrations(migrations: IMigrationDatabaseOrmSQLite[]): void {
     if (!Array.isArray(migrations) || migrations.length === 0) {
-      throw new OrmSQLiteError(
-        'ERR_INVALID_MIGRATIONS',
-        'Migrations list is empty. Provide at least one migration version.'
-      );
+      throw new OrmSQLiteError('ERR_INVALID_MIGRATIONS', 'Migrations list is empty. Provide at least one migration version.');
     }
 
     const versions = migrations.map(m => m.version);
     const uniqueVersions = new Set(versions);
     if (uniqueVersions.size !== versions.length) {
-      throw new OrmSQLiteError(
-        'ERR_INVALID_MIGRATIONS',
-        'Duplicate migration version detected. Migration versions must be unique.'
-      );
+      throw new OrmSQLiteError('ERR_INVALID_MIGRATIONS', 'Duplicate migration version detected. Migration versions must be unique.');
     }
 
     for (let i = 1; i < migrations.length; i++) {
       if (migrations[i].version <= migrations[i - 1].version) {
-        throw new OrmSQLiteError(
-          'ERR_INVALID_MIGRATIONS',
-          'Migrations must be sorted in ascending order by version.'
-        );
+        throw new OrmSQLiteError('ERR_INVALID_MIGRATIONS', 'Migrations must be sorted in ascending order by version.');
       }
     }
   }

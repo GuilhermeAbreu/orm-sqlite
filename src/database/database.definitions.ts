@@ -28,13 +28,13 @@ export interface IDatabaseConfig {
   log: boolean;
 }
 export interface IMigrationDatabaseOrmSQLite {
-  version: number,
-  sql: string[]
+  version: number;
+  sql: string[];
 }
 
 export interface IReturnExecuteQuery<T> {
-  changes: number,
-  hasChanged: boolean,
-  values: T[],
-  changedValues: T[]
+  changes: number;
+  hasChanged: boolean;
+  values: T[];
+  changedValues: T[];
 }

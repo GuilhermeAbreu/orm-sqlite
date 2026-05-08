@@ -9,10 +9,7 @@ import type { IColumnTypeOrmSQlite, IModelClassOrmSQlite } from './query-build.d
 export class QueryDDL {
   private static assertSafeIdentifier(identifier: string, fieldName: string): void {
     if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(identifier)) {
-      throw new OrmSQLiteError(
-        'ERR_UNSAFE_IDENTIFIER',
-        `Unsafe SQL identifier for ${fieldName}: '${identifier}'`
-      );
+      throw new OrmSQLiteError('ERR_UNSAFE_IDENTIFIER', `Unsafe SQL identifier for ${fieldName}: '${identifier}'`);
     }
   }
 
@@ -107,4 +104,4 @@ export class QueryDDL {
   private static escapeSqlString(value: string): string {
     return value.replace(/'/g, "''");
   }
-} 
+}

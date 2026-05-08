@@ -31,7 +31,7 @@ export function defineClassMetadata(target: any, metadataKey: string, metadataVa
   metadataStore[className][metadataKey] = metadataValue;
 }
 
-export function getClassMetadata(target: any, metadataKey: string) : any {
+export function getClassMetadata(target: any, metadataKey: string): any {
   const className = target.entityName;
   return metadataStore[className]?.[metadataKey];
 }

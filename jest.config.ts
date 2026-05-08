@@ -8,10 +8,10 @@ module.exports = {
       lines: 70,
       statements: 70,
       functions: 70,
-      branches: 60,
-    },
+      branches: 60
+    }
   },
   transform: {
-    '^.+\\.tsx?$': ['ts-jest', { tsconfig: 'tsconfig.json' }],
-  },
+    '^.+\\.tsx?$': ['ts-jest', { tsconfig: 'tsconfig.json' }]
+  }
 };

@@ -18,9 +18,7 @@ describe('NewQueryBuilder - INSERT Operations', () => {
       };
 
       const sql = queryBuilder.insert(data).toString();
-      expect(sql).toBe(
-        "INSERT INTO user (name, email, age) VALUES ('John', 'john@example.com', 25)"
-      );
+      expect(sql).toBe("INSERT INTO user (name, email, age) VALUES ('John', 'john@example.com', 25)");
     });
 
     it('should handle null values', () => {
@@ -31,9 +29,7 @@ describe('NewQueryBuilder - INSERT Operations', () => {
       };
 
       const sql = queryBuilder.insert(data).toString();
-      expect(sql).toBe(
-        "INSERT INTO user (name, email, age) VALUES ('John', NULL, NULL)"
-      );
+      expect(sql).toBe("INSERT INTO user (name, email, age) VALUES ('John', NULL, NULL)");
     });
 
     it('should handle date values', () => {
@@ -44,9 +40,7 @@ describe('NewQueryBuilder - INSERT Operations', () => {
       };
 
       const sql = queryBuilder.insert(data).toString();
-      expect(sql).toBe(
-        `INSERT INTO user (name, createdAt) VALUES ('John', '${date.toISOString()}')`
-      );
+      expect(sql).toBe(`INSERT INTO user (name, createdAt) VALUES ('John', '${date.toISOString()}')`);
     });
 
     it('should handle object values', () => {
@@ -56,9 +50,7 @@ describe('NewQueryBuilder - INSERT Operations', () => {
       };
 
       const sql = queryBuilder.insert(data).toString();
-      expect(sql).toBe(
-        "INSERT INTO user (name, metadata) VALUES ('John', '{\"role\":\"admin\",\"active\":true}')"
-      );
+      expect(sql).toBe('INSERT INTO user (name, metadata) VALUES (\'John\', \'{"role":"admin","active":true}\')');
     });
 
     it('should handle multiple rows', () => {
@@ -76,9 +68,7 @@ describe('NewQueryBuilder - INSERT Operations', () => {
       ];
 
       const sql = queryBuilder.insert(data).toString();
-      expect(sql).toBe(
-        "INSERT INTO user (name, email, age) VALUES ('John', 'john@example.com', 25), ('Jane', 'jane@example.com', 30)"
-      );
+      expect(sql).toBe("INSERT INTO user (name, email, age) VALUES ('John', 'john@example.com', 25), ('Jane', 'jane@example.com', 30)");
     });
 
     it('should handle special characters in strings', () => {
@@ -88,15 +78,13 @@ describe('NewQueryBuilder - INSERT Operations', () => {
       };
 
       const sql = queryBuilder.insert(data).toString();
-      expect(sql).toBe(
-        "INSERT INTO user (name, email) VALUES ('John O''Connor', 'john.o''connor@example.com')"
-      );
+      expect(sql).toBe("INSERT INTO user (name, email) VALUES ('John O''Connor', 'john.o''connor@example.com')");
     });
 
     it('should expose ERR_UNSAFE_IDENTIFIER for unsafe insert column', () => {
       try {
         queryBuilder.insert({
-          ['name;DROP TABLE user;--' as any]: 'John',
+          ['name;DROP TABLE user;--' as any]: 'John'
         } as any);
         throw new Error('expected insert to throw');
       } catch (error) {
@@ -109,11 +97,11 @@ describe('NewQueryBuilder - INSERT Operations', () => {
       const result = queryBuilder.insertWithParams({
         name: 'John',
         email: 'john@example.com',
-        age: 25,
+        age: 25
       } as any);
 
       expect(result.sql).toBe('INSERT INTO user (name, email, age) VALUES (?, ?, ?)');
       expect(result.params).toEqual(['John', 'john@example.com', 25]);
     });
   });
-}); 
+});
