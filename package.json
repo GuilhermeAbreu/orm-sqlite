@@ -1,6 +1,6 @@
 {
   "name": "@guilhermeabreudev/capacitor-orm-sqlite",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "description": "Gerenciado de sql e banco para sqlite no capacitor",
   "main": "dist/capacitor-orm-sqlite.cjs.js",
   "module": "dist/esm/index.js",
@@ -80,6 +80,6 @@
     "extends": "@ionic/eslint-config/recommended"
   },
   "dependencies": {
-    "@capacitor-community/sqlite": "^7.0.0"
+    "@capacitor-community/sqlite": "^8.0.0"
   }
 }
