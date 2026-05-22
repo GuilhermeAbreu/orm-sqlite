@@ -10,11 +10,11 @@ importers:
     dependencies:
       '@capacitor-community/sqlite':
         specifier: ^7.0.0
-        version: 7.0.3(@capacitor/core@7.6.3)
+        version: 7.0.3(@capacitor/core@8.3.4)
     devDependencies:
       '@capacitor/core':
-        specifier: ^7.0.0
-        version: 7.6.3
+        specifier: ^8.3.4
+        version: 8.3.4
       '@capacitor/docgen':
         specifier: ^0.2.2
         version: 0.2.2
@@ -231,8 +231,8 @@ packages:
     peerDependencies:
       '@capacitor/core': '>=7.0.0'
 
-  '@capacitor/core@7.6.3':
-    resolution: {integrity: sha512-+3cdltDb2A/98Hb2sHG7F+nIEd8/+C+P0muMCY9Ln06LSclK/bseBs1aN30W+0+5LlxWJctmt6jw5bzN+A93og==}
+  '@capacitor/core@8.3.4':
+    resolution: {integrity: sha512-CqRQCkb6HXxcx/N7s+hHTN6ef2CmamFiRMITwm4qB840ph56mS42bzUgn6tKCP+RZjdDweiRHj9ytDDeN6jFag==}
 
   '@capacitor/docgen@0.2.2':
     resolution: {integrity: sha512-617jB5DlKjUljxfoANORWeqffsHqHekckH48oslKWFGzfCHYIAEPfJfMa5M4mVSzn2ifSvWB5C3st4augwhl5w==}
@@ -2846,12 +2846,12 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@capacitor-community/sqlite@7.0.3(@capacitor/core@7.6.3)':
+  '@capacitor-community/sqlite@7.0.3(@capacitor/core@8.3.4)':
     dependencies:
-      '@capacitor/core': 7.6.3
+      '@capacitor/core': 8.3.4
       jeep-sqlite: 2.8.0
 
-  '@capacitor/core@7.6.3':
+  '@capacitor/core@8.3.4':
     dependencies:
       tslib: 2.8.1
 
