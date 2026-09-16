@@ -8,6 +8,10 @@ import type { IModelClassOrmSQlite, JoinOption, OrderByDirection, QueryOptions, 
  */
 
 export class QueryBuildSQlite<T = any> {
+  // Ver mesmo limite em QueryBuildOrmSQlite: literal JSON grande demais embutido
+  // inline no SQL estoura o heap do SQLite em WASM (sql.js). insertWithParams
+  // passa o valor como parâmetro bindado em vez de inline, sem esse limite.
+  private static readonly MAX_INLINE_JSON_BYTES = 200_000;
   private tableName: string;
   private classModel: IModelClassOrmSQlite<T>;
   private conditions: string[] = [];
@@ -268,9 +272,29 @@ export class QueryBuildSQlite<T = any> {
       return `'${date.toISOString()}'`;
     }
     if (Array.isArray(value)) {
+      const json = JSON.stringify(value);
+      if (json.length > QueryBuildSQlite.MAX_INLINE_JSON_BYTES) {
+        throw new OrmSQLiteError(
+          'ERR_PAYLOAD_TOO_LARGE_FOR_INLINE_SQL',
+          `Valor de ${json.length} bytes é grande demais para ser embutido como literal no SQL ` +
+            `(limite: ${QueryBuildSQlite.MAX_INLINE_JSON_BYTES} bytes). Use insertWithParams(), ` +
+            `que passa o valor como parâmetro bindado em vez de inline no texto da query.`
+        );
+      }
       return `(${value.map(v => this.formatValue(v)).join(', ')})`;
     }
-    if (typeof value === 'object') return `'${this.escapeSqlString(JSON.stringify(value))}'`;
+    if (typeof value === 'object') {
+      const json = JSON.stringify(value);
+      if (json.length > QueryBuildSQlite.MAX_INLINE_JSON_BYTES) {
+        throw new OrmSQLiteError(
+          'ERR_PAYLOAD_TOO_LARGE_FOR_INLINE_SQL',
+          `Valor de ${json.length} bytes é grande demais para ser embutido como literal no SQL ` +
+            `(limite: ${QueryBuildSQlite.MAX_INLINE_JSON_BYTES} bytes). Use insertWithParams(), ` +
+            `que passa o valor como parâmetro bindado em vez de inline no texto da query.`
+        );
+      }
+      return `'${this.escapeSqlString(json)}'`;
+    }
     return String(value);
   }
 

@@ -14,6 +14,12 @@ import type {
 } from './query-build.definitions';
 
 export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
+  // Acima disso, o literal já é grande o bastante pra estourar o heap do SQLite
+  // em WASM (sql.js) ao ser embutido inline no texto do SQL — visto em produção
+  // com filter/management_data de fazendas com muitas talhões. insertWithParams/
+  // updateWithParams passam o mesmo valor como parâmetro bindado, sem esse limite.
+  private static readonly MAX_INLINE_JSON_BYTES = 200_000;
+
   private tableName: string;
   private filters: IQueryFilterOrmSQlite<T>[];
   private filtersJoin: IQueryFilterOrmSQlite<T>[];
@@ -468,7 +474,16 @@ export class QueryBuildOrmSQlite<T = any> implements IQueryBuildOrmSQlite<T> {
     } else if (value === null || value === undefined) {
       return 'NULL';
     } else if (typeof value === 'object') {
-      return `'${this.escapeSqlString(JSON.stringify(value))}'`;
+      const json = JSON.stringify(value);
+      if (json.length > QueryBuildOrmSQlite.MAX_INLINE_JSON_BYTES) {
+        throw new OrmSQLiteError(
+          'ERR_PAYLOAD_TOO_LARGE_FOR_INLINE_SQL',
+          `Valor de ${json.length} bytes é grande demais para ser embutido como literal no SQL ` +
+            `(limite: ${QueryBuildOrmSQlite.MAX_INLINE_JSON_BYTES} bytes). Use insertWithParams()/updateWithParams(), ` +
+            `que passam o valor como parâmetro bindado em vez de inline no texto da query.`
+        );
+      }
+      return `'${this.escapeSqlString(json)}'`;
     }
     return `'${this.escapeSqlString(String(value))}'`;
   }
