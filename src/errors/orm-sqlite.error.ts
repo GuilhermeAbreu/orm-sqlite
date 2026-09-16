@@ -8,7 +8,8 @@ export type OrmSQLiteErrorCode =
   | 'ERR_MIGRATION_NOT_FOUND'
   | 'ERR_TABLE_NAME_NOT_INFORMED'
   | 'ERR_PRIMARY_KEY_NOT_FOUND'
-  | 'ERR_INVALID_CONFIG';
+  | 'ERR_INVALID_CONFIG'
+  | 'ERR_PAYLOAD_TOO_LARGE_FOR_INLINE_SQL';
 
 export class OrmSQLiteError extends Error {
   public readonly code: OrmSQLiteErrorCode;
